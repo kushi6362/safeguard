@@ -558,7 +558,7 @@ function confirmSOS() {
     fetch('/trigger-alert/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ location_link: getCurrentLocation(), contacts: App.contacts.map(c => ({ name: c.name, phone: c.phone })) })
+      body: JSON.stringify({ location_link: getCurrentLocation(), contacts: App.contacts.map(c => ({ name: c.name, phone: c.phone, email: c.email || '' })) })
     }).catch(() => {});
   }
 }

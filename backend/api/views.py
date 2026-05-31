@@ -411,17 +411,24 @@ def sos_alert_endpoint(request):
     for contact in data['contacts']:
         phone = contact.get('phone', '')
         name = contact.get('name', 'Unknown')
+        email = contact.get('email', '')
         if not phone:
             results.append({'name': name, 'success': False, 'error': 'No phone'})
             continue
-        result = send_sms(phone, full_message)
-        results.append({'name': name, 'phone': phone, **result})
-    success_count = sum(1 for r in results if r.get('success'))
+        sms_result = send_sms(phone, full_message)
+        email_result = None
+        if email:
+            email_result = send_email_sendgrid(email, f'🚨 SOS EMERGENCY ALERT — Help needed!', full_message)
+        results.append({
+            'name': name, 'phone': phone, 'email': email,
+            'sms': sms_result.get('success', False),
+            'email_sent': email_result.get('success', False) if email_result else False,
+        })
+    success_count = sum(1 for r in results if r.get('sms'))
     return Response({
         'success': success_count > 0,
         'total': len(data['contacts']),
         'sent': success_count,
-        'failed': len(data['contacts']) - success_count,
         'results': results,
     })
 
