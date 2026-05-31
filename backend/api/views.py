@@ -187,15 +187,20 @@ def sos_trigger(request):
         results['sms'] = True
         sos.sms_sent = True
 
-    # 2. Send email to user's email
-    if request.user.email:
-        email_result = send_email_sendgrid(
-            request.user.email,
-            '🚨 SOS EMERGENCY ALERT — SafeGuard',
-            sms_body,
-        )
-        results['email'] = email_result.get('success', False)
-        sos.email_sent = results['email']
+    # 2. Send email to all contacts that have an email
+    email_sent_count = 0
+    for contact in contacts:
+        if contact.email:
+            email_result = send_email_sendgrid(
+                contact.email,
+                f'🚨 SOS EMERGENCY ALERT — {request.user.username} needs help!',
+                sms_body,
+            )
+            if email_result.get('success'):
+                email_sent_count += 1
+    if email_sent_count > 0:
+        results['email'] = True
+        sos.email_sent = True
 
     # 3. Send push notification via FCM
     fcm_token = request.user.profile.fcm_token

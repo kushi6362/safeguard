@@ -30,7 +30,7 @@ class LoginSerializer(serializers.Serializer):
 class EmergencyContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmergencyContact
-        fields = ['id', 'name', 'phone', 'relation', 'created_at']
+        fields = ['id', 'name', 'phone', 'email', 'relation', 'created_at']
         read_only_fields = ['id', 'created_at']
 
     def create(self, validated_data):

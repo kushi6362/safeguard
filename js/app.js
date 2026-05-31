@@ -644,7 +644,7 @@ function renderContacts() {
         <div class="c-avatar" style="background:${c.color};">${c.initials}</div>
         <div class="c-info">
           <div class="c-name">${c.name}</div>
-          <div class="c-rel">${c.relation} &nbsp;·&nbsp; ${c.phone}</div>
+          <div class="c-rel">${c.relation} &nbsp;·&nbsp; ${c.phone}${c.email ? ` &nbsp;·&nbsp; ${c.email}` : ''}</div>
         </div>
         <div class="c-actions">
           <button class="icon-btn" title="Call" onclick="callContact(${c.id})">${iconPhone()}</button>
@@ -795,6 +795,7 @@ function deleteContact(id) {
 function addContact() {
   const name    = document.getElementById('inp-name').value.trim();
   const phone   = document.getElementById('inp-phone').value.trim();
+  const email   = document.getElementById('inp-email').value.trim();
   const relation= document.getElementById('inp-relation').value;
 
   if (!name)  { toast('Please enter a name.', 'Missing Info'); return; }
@@ -809,7 +810,7 @@ function addContact() {
   const newId = App.contactIdCounter++;
   App.contacts.push({
     id: newId,
-    name, relation, phone,
+    name, relation, phone, email,
     color: colors[App.contacts.length % colors.length],
     initials: name[0].toUpperCase(),
     notify: true
@@ -818,6 +819,7 @@ function addContact() {
   renderContacts();
   document.getElementById('inp-name').value  = '';
   document.getElementById('inp-phone').value = '';
+  document.getElementById('inp-email').value = '';
   toast(`✅ ${name} added as an emergency contact!`, 'Contact Added');
 }
 

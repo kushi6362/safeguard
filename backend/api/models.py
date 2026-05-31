@@ -18,6 +18,7 @@ class EmergencyContact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts')
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
+    email = models.EmailField(max_length=254, blank=True)
     relation = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
