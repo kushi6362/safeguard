@@ -6,7 +6,7 @@
 'use strict';
 
 /* ── API base URL (change to your Django server) ── */
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = '';  // empty = same origin (works locally & on Render)
 
 /* ════════════════════════════════════════
    APP STATE — All data starts empty
