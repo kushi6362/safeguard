@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeGuard — Women Safety Alert & Tracking System</title>
+<meta name="description" content="Women Safety Alert and Tracking System — KLE's Jagadguru Tontadarya College, Gadag. BCA Project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="bg-orb"></div>
+<div class="bg-orb"></div>
+<div class="bg-orb"></div>
+<div class="cyber-grid"></div>
+<div class="gps-orbit-bg"></div>
+<div class="gps-orbit-bg"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="scan-line"></div>
+<!-- ╔══════════════════════════════╗
+     ║         LOGIN PAGE           ║
+     ╚══════════════════════════════╝ -->
+<div class="login-page" id="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h1>Safe<span>Guard</span></h1>
+      <p>Women Safety Alert & Tracking System</p>
+    </div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login" onclick="switchLoginTab('login')">Sign In</button>
+      <button class="login-tab" id="tab-register" onclick="switchLoginTab('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="login-form active" id="form-login" onsubmit="handleLogin(event)">
+      <label class="field-label" for="login-email">Email or Username</label>
+      <input class="inp" type="text" id="login-email" placeholder="sneha@example.com" required>
+
+      <label class="field-label" for="login-pass">Password</label>
+      <input class="inp" type="password" id="login-pass" placeholder="••••••••" required minlength="4">
+
+      <button type="submit" class="btn btn-red btn-full mt16">Sign In</button>
+      <p class="login-hint">Default: <strong>admin</strong> / <strong>admin</strong></p>
+    </form>
+
+    <!-- Register Form -->
+    <form class="login-form" id="form-register" onsubmit="handleRegister(event)">
+      <label class="field-label" for="reg-name">Full Name</label>
+      <input class="inp" type="text" id="reg-name" placeholder="Your Name" required>
+
+      <label class="field-label" for="reg-email">Email</label>
+      <input class="inp" type="email" id="reg-email" placeholder="email@example.com" required>
+
+      <label class="field-label" for="reg-phone">Phone</label>
+      <input class="inp" type="tel" id="reg-phone" placeholder="+91 XXXXX XXXXX" required>
+
+      <label class="field-label" for="reg-pass">Password</label>
+      <input class="inp" type="password" id="reg-pass" placeholder="••••••••" required minlength="4">
+
+      <button type="submit" class="btn btn-red btn-full mt16">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ╔══════════════════════════════╗
+     ║         SIDEBAR             ║
+     ╚══════════════════════════════╝ -->
+<nav class="sidebar" role="navigation" aria-label="Main Navigation">
+
+  <div class="sidebar-logo" title="SafeGuard" onclick="showPage('dashboard')">
+    <!-- Shield icon -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  </div>
+
+  <!-- Dashboard -->
+  <button class="nav-item active" data-nav="dashboard" onclick="showPage('dashboard')" aria-label="Dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span class="nav-tooltip">Dashboard</span>
+  </button>
+
+  <!-- Emergency SOS -->
+  <button class="nav-item" data-nav="emergency" onclick="showPage('emergency')" aria-label="Emergency SOS">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span class="nav-tooltip">Emergency SOS</span>
+  </button>
+
+  <!-- Tracking -->
+  <button class="nav-item" data-nav="tracking" onclick="showPage('tracking')" aria-label="Live Tracking">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M22 12h-4M6 12H2M12 2v4M12 18v4"/></svg>
+    <span class="nav-tooltip">Live Tracking</span>
+  </button>
+
+  <!-- Contacts -->
+  <button class="nav-item" data-nav="contacts" onclick="showPage('contacts')" aria-label="Contacts">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    <span class="nav-tooltip">Contacts</span>
+  </button>
+
+  <!-- AI Detection -->
+  <button class="nav-item" data-nav="aidetect" onclick="showPage('aidetect')" aria-label="AI Detection">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+    <span class="nav-tooltip">AI Detection</span>
+  </button>
+
+  <!-- History -->
+  <button class="nav-item" data-nav="history" onclick="showPage('history')" aria-label="Alert History">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span class="nav-tooltip">Alert History</span>
+  </button>
+
+  <!-- Admin -->
+  <button class="nav-item" data-nav="admin" onclick="showPage('admin')" aria-label="Admin Panel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <span class="nav-tooltip">Admin Panel</span>
+  </button>
+
+  <!-- Profile -->
+  <button class="nav-item" data-nav="profile" onclick="showPage('profile')" aria-label="My Profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="nav-tooltip">My Profile</span>
+  </button>
+
+  <!-- Logout -->
+  <button class="nav-item" onclick="logout()" aria-label="Logout" style="margin-top:4px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    <span class="nav-tooltip">Logout</span>
+  </button>
+
+  <div class="sidebar-spacer"></div>
+  <div class="online-dot" title="System Online"></div>
+</nav>
+
+<!-- ╔══════════════════════════════╗
+     ║          MAIN               ║
+     ╚══════════════════════════════╝ -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-brand">Safe<span>Guard</span></div>
+    <div class="topbar-sep"></div>
+    <div class="page-label" id="page-label">Dashboard</div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-clock" id="clock">--:--:-- --</div>
+    <button class="alert-bell" onclick="showPage('history')" title="Alert History">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <div class="bell-badge"></div>
+    </button>
+    <div class="topbar-user" onclick="showPage('profile')">
+      <div class="user-av">?</div>
+      <span>User</span>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════
+       PAGE: DASHBOARD
+  ════════════════════════════════ -->
+  <section class="page active" id="page-dashboard">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head dash-head">
+      <div class="dash-head-content">
+        <h2>Safety <em>Dashboard</em></h2>
+      </div>
+      <div class="dash-illustration">
+        <svg viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 70 L50 40 L70 55 L100 20 L130 55 L150 35 L170 60" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+          <path d="M30 80 L50 50 L70 65 L100 30 L130 65 L150 45 L170 70" stroke="var(--pink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.2"/>
+          <circle cx="100" cy="20" r="4" fill="var(--primary)" opacity="0.45"/>
+          <circle cx="170" cy="60" r="3" fill="var(--pink)" opacity="0.35"/>
+          <circle cx="30" cy="70" r="3" fill="var(--primary-light)" opacity="0.3"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--primary-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--primary);">3</div>
+        <div class="stat-lbl">Alerts This Month</div>
+        <div class="stat-tag" style="color:var(--primary);">↑ 1 from last month</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--green-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--green);">4</div>
+        <div class="stat-lbl">Emergency Contacts</div>
+        <div class="stat-tag" style="color:var(--green);">All reachable</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--blue-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M22 12h-4M6 12H2M12 2v4M12 18v4"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--blue);">GPS</div>
+        <div class="stat-lbl">Location Status</div>
+        <div class="stat-tag" style="color:var(--blue);">Active · ±5m accuracy</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--amber-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--amber);">AI</div>
+        <div class="stat-lbl">Scream Detector</div>
+        <div class="stat-tag" style="color:var(--amber);">Listening…</div>
+      </div>
+    </div>
+
+    <!-- Live Status Banner -->
+    <div class="live-banner">
+      <div class="live-banner-dot"></div>
+      <div class="live-banner-text">
+        <strong>System Active</strong> &nbsp;·&nbsp; Monitoring live from <span id="dash-location">MG Road, Gadag</span>
+      </div>
+      <span class="pill pill-safe" style="font-size:10px;margin-left:auto;">LIVE</span>
+    </div>
+
+    <div class="g2 mt16">
+      <!-- Recent Alerts -->
+      <div class="card">
+        <div class="card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          Recent Alerts
+          <span class="ch-right"><button class="btn btn-ghost btn-sm" onclick="showPage('history')">View All</button></span>
+        </div>
+        <div id="alert-feed"></div>
+      </div>
+
+      <!-- Status + Quick Actions -->
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Current Safety Status
+          </div>
+          <div class="row mt8">
+            <span class="pill pill-safe">Safe</span>
+            <span style="font-size:12px;color:var(--muted);">Updated just now</span>
+          </div>
+          <div class="divider"></div>
+          <div style="font-size:12px;color:var(--muted);">Current Location</div>
+          <div style="font-size:15px;font-weight:600;margin-top:4px;">MG Road, Gadag, Karnataka</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">15.4253°N &nbsp;75.6278°E</div>
+          <div class="divider"></div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Quick Actions</div>
+          <div class="row" style="flex-wrap:wrap;gap:8px;">
+            <button class="btn btn-red" onclick="showPage('emergency')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+              SOS Alert
+            </button>
+            <button class="btn btn-ghost" onclick="showPage('tracking')">📍 Share Location</button>
+            <button class="btn btn-ghost" onclick="safeCheckIn()">✅ I'm Safe</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            System Status
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="row"><span style="font-size:13px;flex:1;">GPS Tracking</span><span class="pill pill-safe">Active</span></div>
+            <div class="row"><span style="font-size:13px;flex:1;">AI Scream Detector</span><span class="pill pill-safe">Listening</span></div>
+            <div class="row"><span style="font-size:13px;flex:1;">Emergency Contacts</span><span class="pill pill-safe">4 Ready</span></div>
+            <div class="row"><span style="font-size:13px;flex:1;">Database (MySQL)</span><span class="pill pill-safe">Connected</span></div>
+            <div class="row"><span style="font-size:13px;flex:1;">Location Sharing</span><span class="pill pill-warn">Standby</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: EMERGENCY SOS
+  ════════════════════════════════ -->
+  <section class="page" id="page-emergency">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>Emergency <em>SOS</em></h2>
+      <p>Press the button to send an instant alert with your live GPS location to all contacts</p>
+    </div>
+    <div class="g2">
+      <!-- SOS Button card -->
+      <div class="card">
+        <div class="sos-wrapper">
+          <div class="sos-rings">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <button class="sos-btn-main" onclick="triggerSOS()" aria-label="Send SOS Emergency Alert">
+              <div class="sos-label">SOS</div>
+              <div class="sos-sub">TAP TO ALERT</div>
+            </button>
+          </div>
+          <p class="sos-hint">Pressing SOS immediately sends your GPS coordinates to all registered emergency contacts and nearby police authorities via SMS.</p>
+          <div class="row mt16" style="justify-content:center;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="safeCheckIn()">✅ I'm Safe</button>
+            <button class="btn btn-ghost" onclick="showPage('contacts')">👥 Manage Contacts</button>
+            <button class="btn btn-outline" onclick="fakeCall()">📞 Fake Call</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert settings + contact list -->
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Will Alert These Contacts
+          </div>
+          <div id="sos-contact-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Emergency SMS
+          </div>
+          <label class="field-label" style="margin-top:0;" for="sos-msg-template">SMS message sent to contacts</label>
+          <textarea rows="3" style="resize:none;" id="sos-msg-template">🚨 EMERGENCY! I need immediate help. My location: MG Road, Gadag. Please contact me or alert authorities right away. — SafeGuard App</textarea>
+          <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:6px;" id="sos-contacts-display">Contacts: None saved</div>
+          <div class="row mt16" style="gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-red" onclick="triggerSOS()" style="flex:1;">🚨 SOS Alert</button>
+            <button class="btn btn-outline" onclick="smsAllContacts()" style="flex:1;">💬 SMS All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: LIVE TRACKING
+  ════════════════════════════════ -->
+  <section class="page" id="page-tracking">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>Live <em>GPS Tracking</em></h2>
+      <p>Real-time location monitoring and sharing with emergency contacts</p>
+    </div>
+    <div class="g2">
+      <!-- Map with Google Maps embed -->
+      <div class="col">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="map-box" id="live-map-container">
+            <iframe id="live-map-frame" width="100%" height="100%" style="border:0;position:absolute;inset:0;" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=75.61,15.41,75.64,15.44&amp;layer=mapnik&amp;marker=15.4253,75.6278"></iframe>
+            <div class="map-user-dot"></div>
+            <div class="map-info">
+              <strong>📍 Current Location</strong>
+              <span id="tracking-location-label">MG Road, Gadag — 15.4253°N 75.6278°E</span>
+              <a id="gmaps-link" href="#" target="_blank" style="font-size:12px;color:var(--blue);margin-top:4px;display:inline-block;">View on Google Maps →</a>
+            </div>
+            <div class="map-contacts" id="tracking-contact-chips">
+            </div>
+          </div>
+          <div style="padding:18px;">
+            <div class="row" style="flex-wrap:wrap;gap:10px;">
+              <div style="flex:1;min-width:80px;">
+                <div style="font-size:11px;color:var(--muted);">Accuracy</div>
+                <div style="font-weight:700;font-size:14px;">±5 meters</div>
+              </div>
+              <div style="flex:1;min-width:80px;">
+                <div style="font-size:11px;color:var(--muted);">Speed</div>
+                <div style="font-weight:700;font-size:14px;">0 km/h</div>
+              </div>
+              <div style="flex:1;min-width:80px;">
+                <div style="font-size:11px;color:var(--muted);">Battery</div>
+                <div style="font-weight:700;font-size:14px;">78%</div>
+              </div>
+              <div style="flex:1;min-width:80px;">
+                <div style="font-size:11px;color:var(--muted);">GPS Status</div>
+                <span class="pill pill-safe" id="share-status">STANDBY</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tracking history -->
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Location Trail (Today)
+          </div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--red-bg);color:var(--red);">●</div>
+              <div class="tl-content"><div class="tl-event">MG Road, Gadag</div><div class="tl-detail">Current · 15.4253°N 75.6278°E</div></div>
+              <div class="tl-time">Now</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--surface-2);color:var(--muted);">●</div>
+              <div class="tl-content"><div class="tl-event">Gadag Bus Stand</div><div class="tl-detail">15.4231°N 75.6219°E</div></div>
+              <div class="tl-time">10 min</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--surface-2);color:var(--muted);">●</div>
+              <div class="tl-content"><div class="tl-event">JTC College, Gadag</div><div class="tl-detail">15.4180°N 75.6190°E</div></div>
+              <div class="tl-time">45 min</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--surface-2);color:var(--muted);">●</div>
+              <div class="tl-content"><div class="tl-event">Home — Residential Area</div><div class="tl-detail">15.4105°N 75.6150°E</div></div>
+              <div class="tl-time">2h ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sharing controls -->
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+            Share Live Location
+          </div>
+          <label class="field-label" style="margin-top:0;" for="share-duration">Share Duration</label>
+          <select id="share-duration">
+            <option>1 Hour</option>
+            <option selected>2 Hours</option>
+            <option>4 Hours</option>
+            <option>Until Manually Stopped</option>
+          </select>
+          <label class="field-label" for="share-with">Share With</label>
+          <select id="share-with">
+            <option>All Emergency Contacts</option>
+            <option>Mom Only</option>
+            <option>Dad Only</option>
+            <option>All Contacts + Police</option>
+          </select>
+          <label class="field-label" for="update-freq">Update Frequency</label>
+          <select id="update-freq">
+            <option>Every 30 seconds</option>
+            <option selected>Every 1 minute</option>
+            <option>Every 5 minutes</option>
+          </select>
+          <button class="btn btn-red btn-full mt16" id="share-btn" onclick="startSharing()">▶ Start Live Sharing</button>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Safe Zones
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="row">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+              <div style="flex:1;font-size:13px;"><strong>Home</strong> &nbsp;—&nbsp; <span style="color:var(--muted);">Residential Area, Gadag</span></div>
+              <span class="pill pill-safe" style="font-size:10px;">Active</span>
+            </div>
+            <div class="row">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+              <div style="flex:1;font-size:13px;"><strong>College</strong> &nbsp;—&nbsp; <span style="color:var(--muted);">JTC Campus, Gadag</span></div>
+              <span class="pill pill-safe" style="font-size:10px;">Active</span>
+            </div>
+            <div class="row">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div>
+              <div style="flex:1;font-size:13px;"><strong>Market Area</strong> &nbsp;—&nbsp; <span style="color:var(--muted);">City Center</span></div>
+              <span class="pill pill-warn" style="font-size:10px;">Caution</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-full mt16" onclick="toast('📍 Safe Zone saved!','Safe Zones')">+ Add Safe Zone</button>
+        </div>
+
+        <!-- ═══ Safe Route Suggestion ═══ -->
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Safe Route Suggestion
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="row" style="align-items:flex-start;">
+              <div style="width:20px;height:20px;border-radius:50%;background:rgba(0,230,118,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:600;color:white;">Route via College Road</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);">Well-lit, CCTV covered · 1.2 km · 15 min walk</div>
+              </div>
+              <span class="pill pill-safe" style="font-size:9px;">Safe</span>
+            </div>
+            <div class="row" style="align-items:flex-start;">
+              <div style="width:20px;height:20px;border-radius:50%;background:rgba(255,171,0,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);"></div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:600;color:white;">Route via Market Road</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);">Moderate traffic, some dark spots · 0.8 km · 10 min</div>
+              </div>
+              <span class="pill pill-warn" style="font-size:9px;">Caution</span>
+            </div>
+            <button class="btn btn-ghost btn-full mt8" onclick="findSafeRoute()">🔄 Suggest Safe Route</button>
+          </div>
+        </div>
+
+        <!-- ═══ Nearby Police & Hospitals ═══ -->
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+            Nearby Emergency Services
+          </div>
+          <div id="nearby-places-list">
+            <div style="font-size:13px;color:rgba(255,255,255,0.4);padding:8px 0;text-align:center;">Click below to find nearby police stations & hospitals</div>
+          </div>
+          <div class="row mt16" style="gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="findNearbyPlaces('police')" style="flex:1;">👮 Police</button>
+            <button class="btn btn-outline btn-sm" onclick="findNearbyPlaces('hospital')" style="flex:1;">🏥 Hospital</button>
+            <button class="btn btn-outline btn-sm" onclick="findNearbyPlaces('atm')" style="flex:1;">🏦 ATM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: CONTACTS
+  ════════════════════════════════ -->
+  <section class="page" id="page-contacts">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>Emergency <em>Contacts</em></h2>
+      <p>People who receive instant alerts when you trigger SOS</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Saved Contacts
+          <span class="ch-right" style="font-size:11px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;text-transform:none;letter-spacing:0;" id="contact-count"></span>
+        </div>
+        <div id="contact-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add New Contact
+        </div>
+        <label class="field-label" style="margin-top:0;" for="inp-name">Full Name *</label>
+        <input class="inp" type="text" id="inp-name" placeholder="e.g. Anita Sharma">
+
+        <label class="field-label" for="inp-phone">Phone Number *</label>
+        <input class="inp" type="tel" id="inp-phone" placeholder="+91 XXXXX XXXXX">
+
+        <label class="field-label" for="inp-email">Email (optional)</label>
+        <input class="inp" type="email" id="inp-email" placeholder="email@example.com">
+
+        <label class="field-label" for="inp-relation">Relationship</label>
+        <select id="inp-relation">
+          <option>Mother</option>
+          <option>Father</option>
+          <option>Sibling</option>
+          <option>Friend</option>
+          <option>Neighbour</option>
+          <option>Guardian</option>
+          <option>Other</option>
+        </select>
+
+        <label class="field-label" for="alert-method">Alert Method</label>
+        <select id="alert-method">
+          <option>SMS + Call</option>
+          <option>SMS only</option>
+          <option>App Notification</option>
+          <option>All Methods</option>
+        </select>
+
+        <div class="row mt16" style="gap:10px;">
+          <button class="btn btn-red" onclick="addContact()" style="flex:1;">Add Contact</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('inp-name').value='';document.getElementById('inp-phone').value='';document.getElementById('inp-email').value='';">Clear</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: AI DETECTION
+  ════════════════════════════════ -->
+  <section class="page" id="page-aidetect">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>AI Scream <em>Detection</em></h2>
+      <p>Automatic danger recognition using ML audio analysis — no button press required</p>
+    </div>
+    <div class="g2">
+      <!-- AI Live Monitor -->
+      <div class="ai-dark-card">
+        <div class="ai-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+          Live Audio Monitor
+        </div>
+        <div class="ai-card-sub">AI model continuously listening for distress sounds</div>
+
+        <div class="waveform" id="waveform"></div>
+
+        <div class="ai-stats">
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:4px;">Sound Level</div>
+            <div><span class="db-display" id="db-value">42</span> <span class="db-unit">dB</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:4px;">AI Status</div>
+            <div class="ai-state" id="ai-state" style="color:var(--green);">✅ SAFE — Monitoring</div>
+          </div>
+        </div>
+
+        <div class="thresh-bar">
+          <div class="thresh-fill" id="thresh-fill" style="width:42%;"></div>
+        </div>
+        <div class="thresh-labels">
+          <span>0 dB</span>
+          <span>Normal (40)</span>
+          <span>Caution (65)</span>
+          <span>Alert (85)</span>
+          <span>100 dB</span>
+        </div>
+
+        <div class="ai-controls">
+          <div>
+            <div class="ai-ctrl-label">AI Scream Detection</div>
+            <div class="ai-ctrl-sub">Auto-alert fires at ≥85 dB scream</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked id="ai-toggle" onchange="toggleAI(this)">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button class="btn btn-outline btn-sm" style="border-color:rgba(255,107,138,.6);color:#ff6b8a;" onclick="testDetection()">🔊 Test Detection</button>
+          <button class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.6);" onclick="toast('AI model last retrained: March 2024. Accuracy: 94.3%.','Model Info')">ℹ️ Model Info</button>
+        </div>
+      </div>
+
+      <!-- Settings & How it works -->
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            How It Works
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:30px;height:30px;background:var(--red-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:12px;color:var(--red);">1</div>
+              <div><div style="font-size:13.5px;font-weight:600;">Audio Capture</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Microphone captures ambient sound continuously in real-time</div></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:30px;height:30px;background:var(--amber-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:12px;color:var(--amber);">2</div>
+              <div><div style="font-size:13.5px;font-weight:600;">ML Classification</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">AI model (SVM/CNN) classifies scream vs. normal environmental noise</div></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:30px;height:30px;background:var(--blue-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:12px;color:var(--blue);">3</div>
+              <div><div style="font-size:13.5px;font-weight:600;">Threshold Check</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">If classified scream exceeds dB threshold, auto-alert is prepared</div></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:30px;height:30px;background:var(--green-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:12px;color:var(--green);">4</div>
+              <div><div style="font-size:13.5px;font-weight:600;">Auto Alert Fires</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">GPS location + SMS sent to all contacts within 3 seconds automatically</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+            Detection Settings
+          </div>
+          <label class="field-label" style="margin-top:0;" for="sensitivity">Sensitivity Level</label>
+          <select id="sensitivity" onchange="toast('⚙️ Sensitivity updated.','Settings Saved')">
+            <option>High — 75 dB (more sensitive)</option>
+            <option selected>Medium — 85 dB (recommended)</option>
+            <option>Low — 95 dB (fewer false positives)</option>
+          </select>
+          <label class="field-label" for="auto-delay">Auto-Alert Delay</label>
+          <select id="auto-delay">
+            <option>Immediate (0 seconds)</option>
+            <option selected>3 seconds (default)</option>
+            <option>5 seconds (manual cancel window)</option>
+          </select>
+          <label class="field-label" for="sound-env">Sound Environment</label>
+          <select id="sound-env">
+            <option>Quiet (Indoor / Night)</option>
+            <option selected>Mixed (General Use)</option>
+            <option>Noisy (Public / Transport)</option>
+          </select>
+          <button class="btn btn-red btn-full mt16" onclick="toast('✅ AI detection settings saved.','Saved')">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: HISTORY
+  ════════════════════════════════ -->
+  <section class="page" id="page-history">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>Alert <em>History</em></h2>
+      <p>Complete log of all past alerts, check-ins, and system events</p>
+    </div>
+    <div class="g2">
+      <div class="card" style="grid-column:1/-1;">
+        <div class="card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          All Events
+          <span class="ch-right">
+            <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
+          </span>
+        </div>
+        <div id="history-feed"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: ADMIN PANEL
+  ════════════════════════════════ -->
+  <section class="page" id="page-admin">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>Admin <em>Panel</em></h2>
+    </div>
+
+    <!-- Admin Stats -->
+    <div class="g3" style="margin-bottom:20px;">
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--blue-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--blue);">127</div>
+        <div class="stat-lbl">Registered Users</div>
+        <div class="stat-tag" style="color:var(--blue);">↑ 14 new this month</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--pink-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--pink);">18</div>
+        <div class="stat-lbl">Total Alerts (Apr)</div>
+        <div class="stat-tag" style="color:var(--pink);">↓ 3 from March</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:var(--green-bg);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="stat-num" style="color:var(--green);">94%</div>
+        <div class="stat-lbl">Response Rate</div>
+        <div class="stat-tag" style="color:var(--green);">+2% improvement</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Registered Users & Emergency Log
+        <span class="ch-right" style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="toast('🔍 Filter applied.','Filter')">Filter</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
+          <button class="btn btn-red btn-sm" onclick="toast('📣 Broadcast safety alert sent to all ' + App.adminUsers.length + ' users.','Broadcast Sent')">Broadcast Alert</button>
+        </span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Reg. No.</th>
+              <th>Phone</th>
+              <th>Last Alert</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       PAGE: MY PROFILE
+  ════════════════════════════════ -->
+  <section class="page" id="page-profile">
+    <div class="page-bg-pattern"></div>
+    <div class="sec-head">
+      <h2>My <em>Profile</em></h2>
+      <p>Personal information and app preferences</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Personal Information
+        </div>
+        <!-- Avatar -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+          <div class="profile-avatar">?</div>
+          <div>
+            <div class="profile-name">Your Name</div>
+            <span class="pill pill-safe" style="margin-top:6px;">Account Active</span>
+          </div>
+        </div>
+
+        <label class="field-label" style="margin-top:0;" for="p-name">Full Name</label>
+        <input class="inp" type="text" id="p-name" placeholder="Your full name">
+
+        <label class="field-label" for="p-phone">Phone Number</label>
+        <input class="inp" type="tel" id="p-phone" placeholder="+91 XXXXX XXXXX">
+
+        <label class="field-label" for="p-email">Email Address</label>
+        <input class="inp" type="email" id="p-email" placeholder="email@example.com">
+
+        <label class="field-label" for="p-addr">Home Address</label>
+        <input class="inp" type="text" id="p-addr" placeholder="Your address">
+
+        <label class="field-label" for="blood-group">Blood Group</label>
+        <select id="blood-group">
+          <option selected disabled>Select blood group</option>
+          <option>A+</option><option>B+</option><option>O+</option><option>AB+</option>
+          <option>A−</option><option>B−</option><option>O−</option><option>AB−</option>
+        </select>
+
+        <button class="btn btn-red btn-full mt16" onclick="saveProfile()">Save Profile</button>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            App Preferences
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="row">
+              <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">AI Scream Detection</div><div style="font-size:12px;color:var(--muted);">Auto-detect danger sounds</div></div>
+              <label class="toggle"><input type="checkbox" id="ai-scream" checked onchange="toggleAI(this)"><div class="toggle-track"></div></label>
+            </div>
+            <div class="divider" style="margin:0;"></div>
+            <div class="row">
+              <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Background GPS</div><div style="font-size:12px;color:var(--muted);">Track location always</div></div>
+              <label class="toggle"><input type="checkbox" id="bg-gps" checked><div class="toggle-track"></div></label>
+            </div>
+            <div class="divider" style="margin:0;"></div>
+            <div class="row">
+              <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Night Mode Alerts</div><div style="font-size:12px;color:var(--muted);">Extra sensitivity 9 PM–6 AM</div></div>
+              <label class="toggle"><input type="checkbox" id="night-mode" checked><div class="toggle-track"></div></label>
+            </div>
+            <div class="divider" style="margin:0;"></div>
+            <div class="row">
+              <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;">Vibration Alerts</div><div style="font-size:12px;color:var(--muted);">Haptic feedback on danger</div></div>
+              <label class="toggle"><input type="checkbox" id="vibration" checked><div class="toggle-track"></div></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            Account
+          </div>
+          <button class="btn btn-outline btn-full" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ════════════════════════════════
+     SOS MODAL
+════════════════════════════════ -->
+<div class="modal-bg" id="sos-modal" role="dialog" aria-modal="true" aria-label="SOS Confirmation">
+  <div class="modal-box">
+    <div class="modal-icon-ring">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <h3>🚨 SOS Sending In…</h3>
+    <div class="modal-countdown" id="sos-count">3</div>
+    <p>Your live GPS location will be sent to your emergency contacts. Tap <em>Cancel</em> to abort.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cancelSOS()">Cancel</button>
+      <button class="btn btn-red" onclick="confirmSOS()">Send Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     TOAST NOTIFICATION
+════════════════════════════════ -->
+<div id="toast" role="alert" aria-live="polite">
+  <div id="toast-title"></div>
+  <div id="toast-msg"></div>
+</div>
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
