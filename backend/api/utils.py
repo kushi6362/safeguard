@@ -33,12 +33,22 @@ def send_sms(to: str, body: str) -> dict:
     return send_sms_fast2sms(to, body)
 
 
-# ── Email via SendGrid ──
+# ── Email via Gmail SMTP (fallback to SendGrid) ──
+
+from django.core.mail import send_mail
 
 def send_email_sendgrid(to_email: str, subject: str, body_text: str) -> dict:
+    host_user = settings.EMAIL_HOST_USER
+    host_pass = settings.EMAIL_HOST_PASSWORD
+    if host_user and host_pass:
+        try:
+            send_mail(subject, body_text, settings.EMAIL_FROM, [to_email], fail_silently=False)
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
     api_key = settings.SENDGRID_API_KEY
     if not api_key:
-        return {'success': False, 'error': 'SendGrid not configured'}
+        return {'success': False, 'error': 'Email not configured (set Gmail SMTP or SendGrid)'}
     try:
         resp = requests.post(
             'https://api.sendgrid.com/v3/mail/send',

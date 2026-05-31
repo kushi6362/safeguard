@@ -87,9 +87,17 @@ CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://127.0.0.1:8000,
 # Fast2SMS config
 FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY', '')
 
-# SendGrid config
+# Gmail SMTP email config
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_FROM = os.getenv('EMAIL_FROM', EMAIL_HOST_USER or 'safeguard@example.com')
+
+# SendGrid config (fallback if SMTP is not configured)
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
-EMAIL_FROM = os.getenv('EMAIL_FROM', 'safeguard@example.com')
 
 # Firebase Cloud Messaging
 FCM_SERVER_KEY = os.getenv('FCM_SERVER_KEY', '')
