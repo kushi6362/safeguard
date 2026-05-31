@@ -6,24 +6,6 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-# ── SMS via Twilio ──
-
-def send_sms_twilio(to: str, body: str) -> dict:
-    sid = settings.TWILIO_ACCOUNT_SID
-    token = settings.TWILIO_AUTH_TOKEN
-    from_number = settings.TWILIO_PHONE_NUMBER
-    if not sid or not token or not from_number:
-        return {'success': False, 'error': 'Twilio not configured'}
-    try:
-        from twilio.rest import Client
-        client = Client(sid, token)
-        msg = client.messages.create(body=body, from_=from_number, to=to)
-        return {'success': True, 'sid': msg.sid}
-    except Exception as e:
-        logger.error('Twilio error: %s', e)
-        return {'success': False, 'error': str(e)}
-
-
 # ── SMS via Fast2SMS ──
 
 def send_sms_fast2sms(to: str, body: str) -> dict:
@@ -48,14 +30,7 @@ def send_sms_fast2sms(to: str, body: str) -> dict:
 
 
 def send_sms(to: str, body: str) -> dict:
-    """Try Twilio first, fall back to Fast2SMS."""
-    result = send_sms_twilio(to, body)
-    if result['success']:
-        return result
-    result2 = send_sms_fast2sms(to, body)
-    if result2['success']:
-        return result2
-    return {'success': False, 'error': 'SMS providers unavailable'}
+    return send_sms_fast2sms(to, body)
 
 
 # ── Email via SendGrid ──

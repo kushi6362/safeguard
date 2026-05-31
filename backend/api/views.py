@@ -19,7 +19,7 @@ from .serializers import (
 )
 from .alerts import send_whatsapp_alert
 from .utils import (
-    send_sms, send_sms_twilio, send_sms_fast2sms,
+    send_sms,
     send_email_sendgrid, send_fcm_notification,
     geocode_address, find_nearby_places, build_location_link,
 )
@@ -425,7 +425,6 @@ def sos_alert_endpoint(request):
 def health(request):
     return Response({
         'status': 'ok',
-        'twilio_configured': bool(settings.TWILIO_ACCOUNT_SID),
         'fast2sms_configured': bool(settings.FAST2SMS_API_KEY),
         'sendgrid_configured': bool(settings.SENDGRID_API_KEY),
         'fcm_configured': bool(settings.FCM_SERVER_KEY),

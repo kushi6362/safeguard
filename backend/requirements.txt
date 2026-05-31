@@ -3,6 +3,4 @@ djangorestframework>=3.14
 django-cors-headers>=4.0
 whitenoise>=6.0
 gunicorn>=21.2
-twilio>=8.0
 python-dotenv>=1.0
-pywhatkit>=5.4
