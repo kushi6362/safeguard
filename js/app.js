@@ -191,14 +191,29 @@ function tryLocalLogin(email, pass) {
   return false;
 }
 
+function validatePassword(pass, name, email) {
+  if (pass.length < 8) return 'Password must be at least 8 characters long';
+  if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter (A-Z)';
+  if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter (a-z)';
+  if (!/[0-9]/.test(pass)) return 'Password must contain at least one number (0-9)';
+  if (!/[@#$%&!]/.test(pass)) return 'Password must contain at least one special character (@, #, $, %, &, !)';
+  if (/\s/.test(pass)) return 'Password must not contain spaces';
+  if (name && pass.toLowerCase().includes(name.toLowerCase())) return 'Password must not be the same as your name';
+  if (email && pass.toLowerCase().includes(email.split('@')[0].toLowerCase())) return 'Password must not be the same as your email';
+  return '';
+}
+
 function handleRegister(e) {
   e.preventDefault();
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const phone = document.getElementById('reg-phone').value.trim();
-  const pass = document.getElementById('reg-pass').value.trim();
+  const pass = document.getElementById('reg-pass').value;
 
   if (!name || !email || !phone || !pass) { toast('Please fill all fields.', 'Registration Error'); return; }
+
+  const pwErr = validatePassword(pass, name, email);
+  if (pwErr) { toast(pwErr, 'Weak Password'); return; }
 
   if (App.users.find(u => u.email === email)) {
     toast('Email already registered. Please sign in.', 'Registration Failed');
@@ -218,6 +233,30 @@ function handleRegister(e) {
     body: JSON.stringify({ username: name, email, phone, password: pass })
   }).catch(() => {});
 }
+
+// Live password requirement check
+function checkPassRequirements() {
+  const pass = document.getElementById('reg-pass').value;
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  document.getElementById('req-length').innerHTML = (pass.length >= 8 ? '✓' : '✗') + ' At least 8 characters';
+  document.getElementById('req-length').style.color = pass.length >= 8 ? '#10b981' : 'var(--muted)';
+  document.getElementById('req-upper').innerHTML = (/[A-Z]/.test(pass) ? '✓' : '✗') + ' At least 1 uppercase letter';
+  document.getElementById('req-upper').style.color = /[A-Z]/.test(pass) ? '#10b981' : 'var(--muted)';
+  document.getElementById('req-lower').innerHTML = (/[a-z]/.test(pass) ? '✓' : '✗') + ' At least 1 lowercase letter';
+  document.getElementById('req-lower').style.color = /[a-z]/.test(pass) ? '#10b981' : 'var(--muted)';
+  document.getElementById('req-number').innerHTML = (/[0-9]/.test(pass) ? '✓' : '✗') + ' At least 1 number';
+  document.getElementById('req-number').style.color = /[0-9]/.test(pass) ? '#10b981' : 'var(--muted)';
+  document.getElementById('req-special').innerHTML = (/[@#$%&!]/.test(pass) ? '✓' : '✗') + ' At least 1 special character (@, #, $, %, &, !)';
+  document.getElementById('req-special').style.color = /[@#$%&!]/.test(pass) ? '#10b981' : 'var(--muted)';
+  document.getElementById('req-space').innerHTML = (/\s/.test(pass) ? '✗' : '✓') + ' No spaces';
+  document.getElementById('req-space').style.color = /\s/.test(pass) ? '#ff4444' : '#10b981';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const passInput = document.getElementById('reg-pass');
+  if (passInput) passInput.addEventListener('input', checkPassRequirements);
+});
 
 function localRegister(name, email, phone, pass) {
   if (App.users.find(u => u.email === email)) {

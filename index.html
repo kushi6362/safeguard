@@ -70,7 +70,15 @@
       <input class="inp" type="tel" id="reg-phone" placeholder="+91 XXXXX XXXXX" required>
 
       <label class="field-label" for="reg-pass">Password</label>
-      <input class="inp" type="password" id="reg-pass" placeholder="••••••••" required minlength="4">
+      <input class="inp" type="password" id="reg-pass" placeholder="••••••••" required minlength="8">
+      <div id="pass-requirements" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">
+        <div id="req-length">✗ At least 8 characters</div>
+        <div id="req-upper">✗ At least 1 uppercase letter</div>
+        <div id="req-lower">✗ At least 1 lowercase letter</div>
+        <div id="req-number">✗ At least 1 number</div>
+        <div id="req-special">✗ At least 1 special character (@, #, $, %, &, !)</div>
+        <div id="req-space">✗ No spaces</div>
+      </div>
 
       <button type="submit" class="btn btn-red btn-full mt16">Create Account</button>
     </form>
