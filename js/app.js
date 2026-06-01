@@ -537,12 +537,12 @@ async function callSmsApi(phone, message, name) {
   }
 }
 
-async function callSosApi(contacts, message) {
+async function callSosApi(contacts, message, lat, lng) {
   try {
     const res = await fetch(API_BASE + '/api/sos-alert/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contacts, message, location: getCurrentLocation() })
+      body: JSON.stringify({ contacts, message, location: getCurrentLocation(), lat, lng })
     });
     const data = await res.json();
     if (data.success) return data;
@@ -587,18 +587,29 @@ function confirmSOS() {
 
   if (App.contacts.length > 0) {
     const msg = getSOSMessage();
-    callSosApi(App.contacts, msg).then(r => {
-      if (!r || !r.success) {
-        App.contacts.forEach((c, i) => {
-          setTimeout(() => openSmsApp(c.phone, c.name), i * 1800);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        callSosApi(App.contacts, msg, lat, lng).then(r => {
+          if (!r || !r.emails_sent) {
+            App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
+          }
         });
-      }
-    });
-    fetch('/trigger-alert/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ location_link: getCurrentLocation(), contacts: App.contacts.map(c => ({ name: c.name, phone: c.phone, email: c.email || '' })) })
-    }).catch(() => {});
+      }, function() {
+        callSosApi(App.contacts, msg, null, null).then(r => {
+          if (!r || !r.emails_sent) {
+            App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
+          }
+        });
+      });
+    } else {
+      callSosApi(App.contacts, msg, null, null).then(r => {
+        if (!r || !r.emails_sent) {
+          App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
+        }
+      });
+    }
   }
 }
 

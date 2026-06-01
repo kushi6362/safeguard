@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
@@ -399,36 +400,49 @@ My current location:
 
 
 @api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
 def sos_alert_endpoint(request):
+    user = request.user
     serializer = SOSAlertSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     data = serializer.validated_data
-    message = data['message']
     location = data.get('location', 'Unknown')
-    full_message = f"{message}\n\n📍 Live Location: {location}"
+    lat = data.get('lat')
+    lng = data.get('lng')
+    now = timezone.now().strftime('%d-%b-%Y %I:%M %p')
+    maps_link = f'https://www.google.com/maps?q={lat},{lng}' if lat and lng else 'Unknown'
+    email_body = (
+        f"🚨 EMERGENCY ALERT — {user.username}\n"
+        f"{'='*40}\n\n"
+        f"I am in danger and need immediate help.\n\n"
+        f"👤 User: {user.username}\n"
+        f"📧 Email: {user.email}\n"
+        f"📅 Date & Time: {now}\n"
+        f"📍 Latitude: {lat or 'N/A'}\n"
+        f"📍 Longitude: {lng or 'N/A'}\n"
+        f"🗺️ Google Maps: {maps_link}\n\n"
+        f"Please track and assist immediately.\n"
+        f"— SafeGuard Emergency Alert System"
+    )
+    email_subject = f"🚨 SOS EMERGENCY ALERT — {user.username} needs immediate help!"
     results = []
     for contact in data['contacts']:
         phone = contact.get('phone', '')
         name = contact.get('name', 'Unknown')
         email = contact.get('email', '')
-        if not phone:
-            results.append({'name': name, 'success': False, 'error': 'No phone'})
-            continue
-        sms_result = send_sms(phone, full_message)
         email_result = None
         if email:
-            email_result = send_email_sendgrid(email, f'🚨 SOS EMERGENCY ALERT — Help needed!', full_message)
+            email_result = send_email_sendgrid(email, email_subject, email_body)
         results.append({
             'name': name, 'phone': phone, 'email': email,
-            'sms': sms_result.get('success', False),
             'email_sent': email_result.get('success', False) if email_result else False,
         })
-    success_count = sum(1 for r in results if r.get('sms'))
+    email_count = sum(1 for r in results if r.get('email_sent'))
     return Response({
-        'success': success_count > 0,
+        'success': email_count > 0,
         'total': len(data['contacts']),
-        'sent': success_count,
+        'emails_sent': email_count,
         'results': results,
     })
 
