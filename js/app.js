@@ -850,6 +850,7 @@ function addContact() {
 
   if (!name)  { toast('Please enter a name.', 'Missing Info'); return; }
   if (!phone) { toast('Please enter a phone number.', 'Missing Info'); return; }
+  if (!email) { toast('Please enter an email address.', 'Missing Info'); return; }
 
   const colors = [
     'linear-gradient(135deg,#f59e0b,#d97706)',

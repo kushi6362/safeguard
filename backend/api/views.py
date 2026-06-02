@@ -379,35 +379,39 @@ def send_alert(request):
         location = data.get("location_link") or data.get("location", "")
         lat = data.get("latitude") or data.get("lat")
         lng = data.get("longitude") or data.get("lng")
+        contact_list = data.get("contacts", [])
         maps_link = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else location
 
+        user_name = data.get("user_name", "A user")
+        subject = f"🚨 SOS EMERGENCY ALERT — {user_name} needs help!"
         message = f"""
 EMERGENCY ALERT — SafeGuard
 
-I am in danger and need immediate help.
+{user_name} is in danger and needs immediate help.
 
 Location: {maps_link}
 Latitude: {lat or 'N/A'}
 Longitude: {lng or 'N/A'}
+Date & Time: {timezone.now().strftime('%d-%b-%Y %I:%M %p')}
 
-Please contact me immediately.
+Please contact them immediately.
         """.strip()
 
-        contacts = EmergencyContact.objects.all()
         sent_count = 0
-        for c in contacts:
+        emails_to_send = [c['email'] for c in contact_list if c.get('email')]
+        for email in emails_to_send:
             try:
                 send_mail(
-                    'Women Safety Alert — SOS',
+                    subject,
                     message,
                     settings.EMAIL_HOST_USER or 'safeguard@example.com',
-                    [c.email] if c.email else [],
+                    [email],
                     fail_silently=False,
                 )
                 sent_count += 1
             except Exception as e:
-                print(f"Email send error to {c.email}: {e}")
-        return JsonResponse({"message": f"Emergency alert sent to {sent_count} contact(s)!"})
+                print(f"Email send error to {email}: {e}")
+        return JsonResponse({"message": f"Alert sent to {sent_count} email(s)!"})
 
 
 @api_view(['POST'])
