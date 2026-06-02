@@ -42,10 +42,10 @@ def send_email_sendgrid(to_email: str, subject: str, body_text: str) -> dict:
     host_pass = settings.EMAIL_HOST_PASSWORD
     if host_user and host_pass:
         try:
-            send_mail(subject, body_text, settings.EMAIL_FROM, [to_email], fail_silently=False)
+            send_mail(subject, body_text, settings.EMAIL_FROM, [to_email], fail_silently=True)
             return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
+        except BaseException:
+            return {'success': False, 'error': 'SMTP failed'}
     api_key = settings.SENDGRID_API_KEY
     if not api_key:
         return {'success': False, 'error': 'Email not configured (set Gmail SMTP or SendGrid)'}
