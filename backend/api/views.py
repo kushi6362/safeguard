@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -375,28 +376,38 @@ def trigger_alert(request):
 def send_alert(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        latitude = data.get("latitude")
-        longitude = data.get("longitude")
-        location_link = data.get("location_link")
-        print("Latitude:", latitude)
-        print("Longitude:", longitude)
-        print("Location:", location_link)
-        sms_body = f"""Emergency Alert!
+        location = data.get("location_link") or data.get("location", "")
+        lat = data.get("latitude") or data.get("lat")
+        lng = data.get("longitude") or data.get("lng")
+        maps_link = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else location
 
-I need help.
-My current location:
-{location_link}"""
-        try:
-            contacts = EmergencyContact.objects.all()
-            for c in contacts:
-                send_sms(c.phone, sms_body)
-        except Exception as e:
-            print("SMS send error:", e)
-        try:
-            send_whatsapp_alert(location_link=location_link)
-        except Exception as e:
-            print("WhatsApp alert error:", e)
-        return JsonResponse({"message": "Emergency alert sent successfully!"})
+        message = f"""
+EMERGENCY ALERT — SafeGuard
+
+I am in danger and need immediate help.
+
+Location: {maps_link}
+Latitude: {lat or 'N/A'}
+Longitude: {lng or 'N/A'}
+
+Please contact me immediately.
+        """.strip()
+
+        contacts = EmergencyContact.objects.all()
+        sent_count = 0
+        for c in contacts:
+            try:
+                send_mail(
+                    'Women Safety Alert — SOS',
+                    message,
+                    settings.EMAIL_HOST_USER or 'safeguard@example.com',
+                    [c.email] if c.email else [],
+                    fail_silently=False,
+                )
+                sent_count += 1
+            except Exception as e:
+                print(f"Email send error to {c.email}: {e}")
+        return JsonResponse({"message": f"Emergency alert sent to {sent_count} contact(s)!"})
 
 
 @api_view(['POST'])
