@@ -1,7 +1,7 @@
 import json
 import logging
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
@@ -49,7 +49,7 @@ def register(request):
 
 
 @api_view(['POST'])
-def login(request):
+def login_view(request):
     serializer = LoginSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -64,6 +64,7 @@ def login(request):
             pass
     if not user:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    login(request._request, user)
     return Response({
         'id': user.id,
         'username': user.username,
