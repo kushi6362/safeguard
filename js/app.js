@@ -1145,6 +1145,22 @@ function findNearbyPlaces(type) {
 }
 
 /* ════════════════════════════════════════
+   GET GPS LOCATION
+════════════════════════════════════════ */
+function getGpsLocation() {
+  if (!navigator.geolocation) { toast('GPS not supported.', 'Error'); return; }
+  navigator.geolocation.getCurrentPosition(function(position) {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const locationLink = `https://maps.google.com/?q=${latitude},${longitude}`;
+    console.log('📍 GPS Location:', locationLink);
+    toast('📍 GPS: ' + latitude.toFixed(4) + ', ' + longitude.toFixed(4), 'Location');
+  }, function() {
+    toast('⚠️ Location access denied.', 'Error');
+  });
+}
+
+/* ════════════════════════════════════════
    SAFE ROUTE
 ════════════════════════════════════════ */
 function findSafeRoute() {
