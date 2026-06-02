@@ -538,11 +538,12 @@ async function callSmsApi(phone, message, name) {
 }
 
 async function callSosApi(contacts, message, lat, lng) {
+  const userName = document.getElementById('p-name')?.value || 'Unknown User';
   try {
     const res = await fetch(API_BASE + '/api/sos-alert/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contacts, message, location: getCurrentLocation(), lat, lng })
+      body: JSON.stringify({ contacts, message, location: getCurrentLocation(), lat, lng, user_name: userName })
     });
     const data = await res.json();
     if (data.success) return data;

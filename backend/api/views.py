@@ -415,9 +415,9 @@ Please contact them immediately.
 
 
 @api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
 def sos_alert_endpoint(request):
-    user = request.user
+    user = request.user if request.user.is_authenticated else None
+    user_name = request.data.get('user_name', user.username if user else 'Unknown User')
     serializer = SOSAlertSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -428,11 +428,11 @@ def sos_alert_endpoint(request):
     now = timezone.now().strftime('%d-%b-%Y %I:%M %p')
     maps_link = f'https://www.google.com/maps?q={lat},{lng}' if lat and lng else 'Unknown'
     email_body = (
-        f"🚨 EMERGENCY ALERT — {user.username}\n"
+        f"🚨 EMERGENCY ALERT — {user_name}\n"
         f"{'='*40}\n\n"
         f"I am in danger and need immediate help.\n\n"
-        f"👤 User: {user.username}\n"
-        f"📧 Email: {user.email}\n"
+        f"👤 User: {user_name}\n"
+        f"📧 Email: {user.email if user else 'N/A'}\n"
         f"📅 Date & Time: {now}\n"
         f"📍 Latitude: {lat or 'N/A'}\n"
         f"📍 Longitude: {lng or 'N/A'}\n"
@@ -440,7 +440,7 @@ def sos_alert_endpoint(request):
         f"Please track and assist immediately.\n"
         f"— SafeGuard Emergency Alert System"
     )
-    email_subject = f"🚨 SOS EMERGENCY ALERT — {user.username} needs immediate help!"
+    email_subject = f"🚨 SOS EMERGENCY ALERT — {user_name} needs immediate help!"
     results = []
     for contact in data['contacts']:
         phone = contact.get('phone', '')
