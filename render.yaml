@@ -3,10 +3,13 @@ services:
     name: safeguard-api
     env: python
     buildCommand: |
+      cd backend
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
       python manage.py migrate
-    startCommand: gunicorn backend.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: |
+      cd backend
+      gunicorn backend.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: backend.settings
