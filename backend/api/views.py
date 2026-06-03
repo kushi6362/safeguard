@@ -13,11 +13,11 @@ from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 
-from .models import UserProfile, EmergencyContact, Alert, Complaint, SOSEvent
+from .models import UserProfile, EmergencyContact, Alert, Complaint, SOSEvent, VoiceNote
 from .serializers import (
     UserSerializer, LoginSerializer, EmergencyContactSerializer,
     AlertSerializer, ComplaintSerializer, SOSEventSerializer,
-    SendSMSSerializer, SOSAlertSerializer,
+    SendSMSSerializer, SOSAlertSerializer, VoiceNoteSerializer,
 )
 from .alerts import send_whatsapp_alert
 from .utils import (
@@ -420,6 +420,18 @@ def sos_alert_endpoint(request):
     lng = data.get('lng')
     now = timezone.now().strftime('%d-%b-%Y %I:%M %p')
     maps_link = f'https://www.google.com/maps?q={lat},{lng}' if lat and lng else 'Unknown'
+
+    # Optional voice note
+    voice_note_id = request.data.get('voice_note_id')
+    voice_note_url = ''
+    if voice_note_id:
+        try:
+            vn = VoiceNote.objects.get(id=voice_note_id)
+            voice_note_url = request.build_absolute_uri(vn.audio_file.url)
+        except VoiceNote.DoesNotExist:
+            pass
+
+    voice_line = f"\n🎤 Voice Note: {voice_note_url}\n" if voice_note_url else ''
     email_body = (
         f"🚨 EMERGENCY ALERT — {user_name}\n"
         f"{'='*40}\n\n"
@@ -429,7 +441,8 @@ def sos_alert_endpoint(request):
         f"📅 Date & Time: {now}\n"
         f"📍 Latitude: {lat or 'N/A'}\n"
         f"📍 Longitude: {lng or 'N/A'}\n"
-        f"🗺️ Google Maps: {maps_link}\n\n"
+        f"🗺️ Google Maps: {maps_link}\n"
+        f"{voice_line}"
         f"Please track and assist immediately.\n"
         f"— SafeGuard Emergency Alert System"
     )
@@ -444,8 +457,40 @@ def sos_alert_endpoint(request):
         'success': True,
         'total': len(data['contacts']),
         'emails_sent': 'pending (background)',
+        'voice_note_url': voice_note_url or None,
         'results': [{'name': c.get('name'), 'phone': c.get('phone'), 'email': c.get('email'), 'email_sent': 'pending'} for c in data['contacts']],
     })
+
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([permissions.AllowAny])
+def upload_voice_note(request):
+    audio_file = request.FILES.get('audio')
+    if not audio_file:
+        return Response({'error': 'No audio file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate file size (max 10MB)
+    if audio_file.size > 10 * 1024 * 1024:
+        return Response({'error': 'File too large. Max 10MB.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate audio format
+    allowed_types = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav']
+    if audio_file.content_type not in allowed_types:
+        return Response({'error': f'Unsupported format. Allowed: {", ".join(allowed_types)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = request.user if request.user.is_authenticated else None
+    duration = float(request.data.get('duration', 0))
+
+    note = VoiceNote.objects.create(
+        user=user,
+        audio_file=audio_file,
+        duration=duration,
+        filesize=audio_file.size,
+    )
+
+    serializer = VoiceNoteSerializer(note, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET'])

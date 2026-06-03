@@ -35,6 +35,9 @@ urlpatterns = [
     path('send-sms/', views.send_sms_endpoint, name='send-sms'),
     path('sos-alert/', views.sos_alert_endpoint, name='sos-alert'),
 
+    # Voice Notes
+    path('voice-note/upload/', views.upload_voice_note, name='voice-note-upload'),
+
     # Health
     path('health/', views.health, name='health'),
 ]

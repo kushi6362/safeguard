@@ -483,6 +483,139 @@ function playLoudAlarm() {
 }
 
 /* ════════════════════════════════════════
+   VOICE NOTE RECORDER
+════════════════════════════════════════ */
+let vnMediaRecorder = null;
+let vnChunks = [];
+let vnBlob = null;
+let vnTimerRef = null;
+let vnSeconds = 0;
+let vnUploadedId = null;
+
+function toggleVoiceNoteRecording() {
+  const btn = document.getElementById('btn-record-vn');
+  if (vnMediaRecorder && vnMediaRecorder.state === 'recording') {
+    // Stop recording
+    vnMediaRecorder.stop();
+    vnMediaRecorder.stream.getTracks().forEach(t => t.stop());
+    clearInterval(vnTimerRef);
+    btn.textContent = '⏺ Record';
+    btn.className = 'btn btn-outline btn-sm';
+    document.getElementById('vn-timer').style.display = 'none';
+    return;
+  }
+
+  // Start recording
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    document.getElementById('vn-status').textContent = '❌ Microphone not supported.';
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      vnChunks = [];
+      vnSeconds = 0;
+      vnUploadedId = null;
+      document.getElementById('vn-playback').style.display = 'none';
+      document.getElementById('btn-play-vn').style.display = 'none';
+      document.getElementById('btn-clear-vn').style.display = 'none';
+      document.getElementById('vn-status').textContent = '';
+
+      vnMediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' });
+
+      vnMediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) vnChunks.push(e.data);
+      };
+
+      vnMediaRecorder.onstop = () => {
+        vnBlob = new Blob(vnChunks, { type: vnMediaRecorder.mimeType });
+        const url = URL.createObjectURL(vnBlob);
+        const player = document.getElementById('vn-audio-player');
+        player.src = url;
+        document.getElementById('vn-playback').style.display = 'block';
+        document.getElementById('btn-play-vn').textContent = '▶ Play';
+        document.getElementById('btn-play-vn').style.display = '';
+        document.getElementById('btn-clear-vn').style.display = '';
+        document.getElementById('vn-status').textContent = `✅ Recorded ${vnSeconds}s — attached to next SOS`;
+      };
+
+      vnMediaRecorder.onerror = () => {
+        document.getElementById('vn-status').textContent = '❌ Recording error. Try again.';
+      };
+
+      vnMediaRecorder.start(250); // collect data every 250ms
+      btn.textContent = '⏹ Stop';
+      btn.className = 'btn btn-red btn-sm';
+
+      // Timer
+      vnTimerRef = setInterval(() => {
+        vnSeconds++;
+        document.getElementById('vn-timer-sec').textContent = vnSeconds;
+      }, 1000);
+      document.getElementById('vn-timer').style.display = '';
+    })
+    .catch(err => {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        document.getElementById('vn-status').textContent = '❌ Microphone permission denied. Enable in browser settings.';
+      } else {
+        document.getElementById('vn-status').textContent = '❌ Mic error: ' + err.message;
+      }
+    });
+}
+
+function playVoiceNote() {
+  const player = document.getElementById('vn-audio-player');
+  if (player.paused) {
+    player.play();
+    document.getElementById('btn-play-vn').textContent = '⏸ Pause';
+  } else {
+    player.pause();
+    document.getElementById('btn-play-vn').textContent = '▶ Play';
+  }
+}
+
+// Sync play button text when audio ends
+document.addEventListener('DOMContentLoaded', () => {
+  const player = document.getElementById('vn-audio-player');
+  if (player) {
+    player.addEventListener('ended', () => {
+      document.getElementById('btn-play-vn').textContent = '▶ Play';
+    });
+  }
+});
+
+function clearVoiceNote() {
+  vnBlob = null;
+  vnUploadedId = null;
+  document.getElementById('vn-playback').style.display = 'none';
+  document.getElementById('btn-play-vn').style.display = 'none';
+  document.getElementById('btn-clear-vn').style.display = 'none';
+  document.getElementById('vn-status').textContent = '';
+  const player = document.getElementById('vn-audio-player');
+  player.pause();
+  player.src = '';
+}
+
+async function uploadVoiceNote() {
+  if (!vnBlob) return null;
+  const formData = new FormData();
+  formData.append('audio', vnBlob, 'voice_note.webm');
+  formData.append('duration', vnSeconds);
+  try {
+    const res = await fetch(API_BASE + '/api/voice-note/upload/', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (data.id) {
+      vnUploadedId = data.id;
+      return data;
+    }
+  } catch (_) {}
+  return null;
+}
+
+/* ════════════════════════════════════════
    SOS SYSTEM
 ════════════════════════════════════════ */
 function triggerSOS() {
@@ -537,13 +670,13 @@ async function callSmsApi(phone, message, name) {
   }
 }
 
-async function callSosApi(contacts, message, lat, lng) {
+async function callSosApi(contacts, message, lat, lng, voiceNoteId) {
   const userName = document.getElementById('p-name')?.value || 'Unknown User';
   try {
     const res = await fetch(API_BASE + '/api/sos-alert/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contacts, message, location: getCurrentLocation(), lat, lng, user_name: userName })
+      body: JSON.stringify({ contacts, message, location: getCurrentLocation(), lat, lng, user_name: userName, voice_note_id: voiceNoteId || null })
     });
     const data = await res.json();
     if (data.success) return data;
@@ -569,11 +702,21 @@ function sendEmergencySMS(phone, name) {
   openSmsApp(phone, name);
 }
 
-function confirmSOS() {
+async function confirmSOS() {
   playLoudAlarm();
   sendBrowserNotification('🚨 SOS SENT — HELP ON THE WAY!', 'Your live location has been sent to ' + App.contacts.length + ' emergency contact(s). Police have been alerted.', true);
   clearInterval(App.sosTimerRef);
   document.getElementById('sos-modal').classList.remove('open');
+
+  // Upload voice note if recorded
+  let voiceNoteId = null;
+  if (vnBlob) {
+    const vnResult = await uploadVoiceNote();
+    if (vnResult && vnResult.id) {
+      voiceNoteId = vnResult.id;
+      document.getElementById('vn-status').textContent = '✅ Voice note uploaded and attached to alert';
+    }
+  }
 
   const count = App.contacts.length;
   App.alerts.unshift({
@@ -588,28 +731,20 @@ function confirmSOS() {
 
   if (App.contacts.length > 0) {
     const msg = getSOSMessage();
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(pos) {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        callSosApi(App.contacts, msg, lat, lng).then(r => {
-          if (!r || !r.emails_sent) {
-            App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
-          }
-        });
-      }, function() {
-        callSosApi(App.contacts, msg, null, null).then(r => {
-          if (!r || !r.emails_sent) {
-            App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
-          }
-        });
-      });
-    } else {
-      callSosApi(App.contacts, msg, null, null).then(r => {
+    const doSos = (lat, lng) => {
+      callSosApi(App.contacts, msg, lat, lng, voiceNoteId).then(r => {
         if (!r || !r.emails_sent) {
           App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
         }
       });
+    };
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => doSos(pos.coords.latitude, pos.coords.longitude),
+        () => doSos(null, null)
+      );
+    } else {
+      doSos(null, null);
     }
   }
 }

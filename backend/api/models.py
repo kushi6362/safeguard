@@ -80,8 +80,27 @@ class Complaint(models.Model):
         return f'{self.title} - {self.user.username}'
 
 
+def voice_note_upload_path(instance, filename):
+    return f'voice_notes/{instance.user_id}_{int(instance.created_at.timestamp())}.webm'
+
+
+class VoiceNote(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='voice_notes')
+    audio_file = models.FileField(upload_to=voice_note_upload_path)
+    duration = models.FloatField(default=0, help_text='Duration in seconds')
+    filesize = models.IntegerField(default=0, help_text='File size in bytes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'VoiceNote {self.id} by {self.user or "anonymous"}'
+
+
 class SOSEvent(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sos_events')
+    voice_note = models.ForeignKey(VoiceNote, on_delete=models.SET_NULL, null=True, blank=True, related_name='sos_events')
     location_lat = models.FloatField(null=True, blank=True)
     location_lng = models.FloatField(null=True, blank=True)
     location_address = models.TextField(blank=True)

@@ -30,6 +30,11 @@ urlpatterns += [
     path('js/<path:path>', serve_frontend_asset, {'document_root': settings.FRONTEND_DIR / 'js'}),
 ]
 
+# Serve media files (voice notes, etc.)
+urlpatterns += [
+    path('media/<path:path>', serve_frontend_asset, {'document_root': settings.MEDIA_ROOT}),
+]
+
 # Serve frontend index.html for all other paths (SPA-style catch-all)
 urlpatterns += [
     path('home/', TemplateView.as_view(template_name='home.html'), name='home-page'),

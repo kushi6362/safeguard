@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, EmergencyContact, Alert, Complaint, SOSEvent
+from .models import UserProfile, EmergencyContact, Alert, Complaint, SOSEvent, VoiceNote
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -88,3 +88,18 @@ class SOSAlertSerializer(serializers.Serializer):
             if 'phone' not in c:
                 raise serializers.ValidationError('Each contact must have a phone field')
         return value
+
+
+class VoiceNoteSerializer(serializers.ModelSerializer):
+    download_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VoiceNote
+        fields = ['id', 'duration', 'filesize', 'download_url', 'created_at']
+        read_only_fields = ['id', 'filesize', 'download_url', 'created_at']
+
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        if request and obj.audio_file:
+            return request.build_absolute_uri(obj.audio_file.url)
+        return None
