@@ -81,7 +81,10 @@ class Complaint(models.Model):
 
 
 def voice_note_upload_path(instance, filename):
-    return f'voice_notes/{instance.user_id}_{int(instance.created_at.timestamp())}.webm'
+    import time
+    ts = int(instance.created_at.timestamp()) if instance.created_at else int(time.time())
+    uid = instance.user_id or 0
+    return f'voice_notes/{uid}_{ts}.webm'
 
 
 class VoiceNote(models.Model):

@@ -912,22 +912,39 @@
 </div><!-- /app -->
 
 <!-- ════════════════════════════════
-     SOS MODAL
-════════════════════════════════ -->
+     SOS MODAL — Auto-Record + Send
+═══════════════════════════════════ -->
 <div class="modal-bg" id="sos-modal" role="dialog" aria-modal="true" aria-label="SOS Confirmation">
   <div class="modal-box">
-    <div class="modal-icon-ring">
+    <div class="modal-icon-ring" id="sos-modal-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </div>
-    <h3>🚨 SOS Sending In…</h3>
-    <div class="modal-countdown" id="sos-count">3</div>
-    <p>Your live GPS location will be sent to your emergency contacts. Tap <em>Cancel</em> to abort.</p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="cancelSOS()">Cancel</button>
-      <button class="btn btn-red" onclick="confirmSOS()">Send Now</button>
+    <h3 id="sos-modal-title">🚨 Emergency Alert</h3>
+    <div id="sos-modal-body">
+      <div id="sos-modal-step-recording">
+        <div class="modal-status">🎤 Recording Emergency Message...</div>
+        <div class="modal-countdown" id="sos-count">15</div>
+        <p class="sos-modal-hint">Recording voice note — <span id="sos-recording-sec">0</span>s elapsed</p>
+      </div>
+      <div id="sos-modal-step-uploading" style="display:none;">
+        <div class="modal-status">📤 Uploading voice note...</div>
+        <div class="spinner"></div>
+      </div>
+      <div id="sos-modal-step-sending" style="display:none;">
+        <div class="modal-status">📨 Sending alerts to emergency contacts...</div>
+        <div class="spinner"></div>
+      </div>
+      <div id="sos-modal-step-done" style="display:none;">
+        <div class="modal-status" style="color:var(--green);">✅ SOS Sent Successfully!</div>
+        <p id="sos-delivery-detail" style="font-size:13px;color:var(--muted);margin-top:8px;"></p>
+      </div>
+    </div>
+    <div id="sos-modal-actions">
+      <button class="btn btn-ghost" id="btn-cancel-sos" onclick="cancelSOS()">Cancel</button>
     </div>
   </div>
 </div>
+
 
 <!-- ════════════════════════════════
      TOAST NOTIFICATION

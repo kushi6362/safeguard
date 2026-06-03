@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import threading
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -474,20 +475,35 @@ def upload_voice_note(request):
     if audio_file.size > 10 * 1024 * 1024:
         return Response({'error': 'File too large. Max 10MB.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Validate audio format
-    allowed_types = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav']
-    if audio_file.content_type not in allowed_types:
-        return Response({'error': f'Unsupported format. Allowed: {", ".join(allowed_types)}'}, status=status.HTTP_400_BAD_REQUEST)
+    # Validate audio format — use startswith because browsers append codecs
+    allowed_prefixes = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav']
+    ct = (audio_file.content_type or '').split(';')[0].strip()
+    if not any(ct.startswith(p) for p in allowed_prefixes):
+        return Response({
+            'error': f'Unsupported format: {audio_file.content_type}. Allowed: {", ".join(allowed_prefixes)}'
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     user = request.user if request.user.is_authenticated else None
-    duration = float(request.data.get('duration', 0))
+    duration = 0
+    try:
+        duration = float(request.data.get('duration', 0))
+    except (TypeError, ValueError):
+        pass
 
-    note = VoiceNote.objects.create(
-        user=user,
-        audio_file=audio_file,
-        duration=duration,
-        filesize=audio_file.size,
-    )
+    # Ensure media/voice_notes directory exists
+    voice_notes_dir = os.path.join(settings.MEDIA_ROOT, 'voice_notes')
+    os.makedirs(voice_notes_dir, exist_ok=True)
+
+    try:
+        note = VoiceNote.objects.create(
+            user=user,
+            audio_file=audio_file,
+            duration=duration,
+            filesize=audio_file.size,
+        )
+    except Exception as e:
+        logger.exception('VoiceNote creation failed')
+        return Response({'error': f'Failed to save voice note: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     serializer = VoiceNoteSerializer(note, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)

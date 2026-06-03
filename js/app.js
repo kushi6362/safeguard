@@ -536,7 +536,7 @@ function toggleVoiceNoteRecording() {
         document.getElementById('btn-play-vn').textContent = '▶ Play';
         document.getElementById('btn-play-vn').style.display = '';
         document.getElementById('btn-clear-vn').style.display = '';
-        document.getElementById('vn-status').textContent = `✅ Recorded ${vnSeconds}s — attached to next SOS`;
+        document.getElementById('vn-status').textContent = `✅ Recorded ${vnSeconds}s — saved locally`;
       };
 
       vnMediaRecorder.onerror = () => {
@@ -616,28 +616,171 @@ async function uploadVoiceNote() {
 }
 
 /* ════════════════════════════════════════
-   SOS SYSTEM
+   SOS SYSTEM — Auto-Record + Send
 ════════════════════════════════════════ */
+let sosAutoRecorder = null;
+let sosAutoChunks = [];
+let sosAutoBlob = null;
+let sosAutoTimer = null;
+let sosAutoSeconds = 0;
+const SOS_RECORD_SECONDS = 15;
+let sosGpsLat = null;
+let sosGpsLng = null;
+let sosGpsResolved = false;
+
+function showSosStep(step) {
+  ['recording', 'uploading', 'sending', 'done'].forEach(s => {
+    document.getElementById('sos-modal-step-' + s).style.display = s === step ? '' : 'none';
+  });
+}
+
 function triggerSOS() {
   playLoudAlarm();
   sendBrowserNotification('🚨 SOS ACTIVATED!', 'Emergency alert preparing — GPS location will be sent to ' + App.contacts.length + ' contact(s). Tap to open.', true);
+
+  // Reset state
+  sosAutoChunks = [];
+  sosAutoBlob = null;
+  sosAutoSeconds = 0;
+  sosGpsLat = null;
+  sosGpsLng = null;
+  sosGpsResolved = false;
+
+  // Show modal
   const modal = document.getElementById('sos-modal');
   modal.classList.add('open');
-  let count = 3;
-  document.getElementById('sos-count').textContent = count;
+  document.getElementById('sos-modal-title').textContent = '🚨 Emergency Alert';
+  document.getElementById('btn-cancel-sos').style.display = '';
+  showSosStep('recording');
+  document.getElementById('sos-count').textContent = SOS_RECORD_SECONDS;
+  document.getElementById('sos-recording-sec').textContent = '0';
 
-  App.sosTimerRef = setInterval(() => {
-    count--;
-    document.getElementById('sos-count').textContent = count;
-    if (count <= 0) {
-      clearInterval(App.sosTimerRef);
-      confirmSOS();
+  // Get GPS in background
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => { sosGpsLat = pos.coords.latitude; sosGpsLng = pos.coords.longitude; sosGpsResolved = true; },
+      () => { sosGpsResolved = true; },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  } else {
+    sosGpsResolved = true;
+  }
+
+  // Start auto-recording
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    // Mic not available — skip recording, send SOS immediately
+    sosAutoRecordDone();
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      sosAutoRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+      });
+      sosAutoRecorder.ondataavailable = e => {
+        if (e.data.size > 0) sosAutoChunks.push(e.data);
+      };
+      sosAutoRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        sosAutoBlob = new Blob(sosAutoChunks, { type: sosAutoRecorder.mimeType });
+        sosAutoRecordDone();
+      };
+      sosAutoRecorder.onerror = () => {
+        stream.getTracks().forEach(t => t.stop());
+        sosAutoRecordDone();
+      };
+      sosAutoRecorder.start(250);
+
+      // Countdown timer
+      let remaining = SOS_RECORD_SECONDS;
+      document.getElementById('sos-count').textContent = remaining;
+      sosAutoTimer = setInterval(() => {
+        remaining--;
+        sosAutoSeconds++;
+        document.getElementById('sos-count').textContent = Math.max(remaining, 0);
+        document.getElementById('sos-recording-sec').textContent = sosAutoSeconds;
+        if (remaining <= 0) {
+          clearInterval(sosAutoTimer);
+          if (sosAutoRecorder && sosAutoRecorder.state === 'recording') {
+            sosAutoRecorder.stop();
+          }
+        }
+      }, 1000);
+    })
+    .catch(() => {
+      // Mic permission denied — send SOS without voice note
+      sosAutoRecordDone();
+    });
+}
+
+function sosAutoRecordDone() {
+  clearInterval(sosAutoTimer);
+  document.getElementById('btn-cancel-sos').style.display = 'none';
+
+  // Upload voice note (async)
+  showSosStep('uploading');
+  document.getElementById('sos-modal-title').textContent = '📤 Uploading Voice Note';
+
+  const doUploadThenSend = async () => {
+    let voiceNoteId = null;
+    if (sosAutoBlob) {
+      const formData = new FormData();
+      formData.append('audio', sosAutoBlob, 'sos_recording.webm');
+      formData.append('duration', sosAutoSeconds);
+      try {
+        const res = await fetch(API_BASE + '/api/voice-note/upload/', {
+          method: 'POST', body: formData
+        });
+        const data = await res.json();
+        if (data.id) voiceNoteId = data.id;
+      } catch (_) {}
     }
-  }, 1000);
+
+    // Send SOS
+    showSosStep('sending');
+    document.getElementById('sos-modal-title').textContent = '📨 Sending Alerts';
+    const msg = getSOSMessage();
+    const contacts = App.contacts;
+
+    const result = await callSosApi(contacts, msg, sosGpsLat, sosGpsLng, voiceNoteId);
+
+    // Show done
+    showSosStep('done');
+    document.getElementById('sos-modal-title').textContent = '✅ SOS Sent!';
+    document.getElementById('sos-delivery-detail').textContent =
+      'Alert sent to ' + contacts.length + ' emergency contact(s). Help is on the way.';
+
+    // Add to local history
+    App.alerts.unshift({
+      type:'red', icon:'alert',
+      name:'🚨 SOS SENT NOW',
+      desc:'Live GPS + voice note dispatched to ' + contacts.length + ' contact(s)',
+      time:'Just now'
+    });
+    saveState();
+    renderAlerts();
+
+    // Fallback: open SMS app if backend didn't send
+    if (!result || !result.success) {
+      contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
+    }
+
+    // Auto-close modal after 3s
+    setTimeout(() => {
+      document.getElementById('sos-modal').classList.remove('open');
+    }, 3000);
+  };
+
+  doUploadThenSend();
 }
 
 function cancelSOS() {
-  clearInterval(App.sosTimerRef);
+  clearInterval(sosAutoTimer);
+  if (sosAutoRecorder && sosAutoRecorder.state === 'recording') {
+    sosAutoRecorder.stream.getTracks().forEach(t => t.stop());
+    sosAutoRecorder.stop();
+  }
   document.getElementById('sos-modal').classList.remove('open');
   toast('SOS cancelled. You are safe! ❤️', 'Alert Cancelled');
 }
@@ -666,7 +809,7 @@ async function callSmsApi(phone, message, name) {
     }
     return data;
   } catch (_) {
-    return null; // API unavailable
+    return null;
   }
 }
 
@@ -700,53 +843,6 @@ function sendEmergencySMS(phone, name) {
   const msg = getSOSMessage();
   callSmsApi(phone, msg, name);
   openSmsApp(phone, name);
-}
-
-async function confirmSOS() {
-  playLoudAlarm();
-  sendBrowserNotification('🚨 SOS SENT — HELP ON THE WAY!', 'Your live location has been sent to ' + App.contacts.length + ' emergency contact(s). Police have been alerted.', true);
-  clearInterval(App.sosTimerRef);
-  document.getElementById('sos-modal').classList.remove('open');
-
-  // Upload voice note if recorded
-  let voiceNoteId = null;
-  if (vnBlob) {
-    const vnResult = await uploadVoiceNote();
-    if (vnResult && vnResult.id) {
-      voiceNoteId = vnResult.id;
-      document.getElementById('vn-status').textContent = '✅ Voice note uploaded and attached to alert';
-    }
-  }
-
-  const count = App.contacts.length;
-  App.alerts.unshift({
-    type:'red', icon:'alert',
-    name:'🚨 SOS SENT NOW',
-    desc:'Live GPS location dispatched to ' + count + ' contact' + (count !== 1 ? 's' : '') + (count > 0 ? '' : ' — no contacts saved yet'),
-    time:'Just now'
-  });
-  saveState();
-  renderAlerts();
-  toast('🚨 SOS SENT! Help is on the way.', 'EMERGENCY ALERT');
-
-  if (App.contacts.length > 0) {
-    const msg = getSOSMessage();
-    const doSos = (lat, lng) => {
-      callSosApi(App.contacts, msg, lat, lng, voiceNoteId).then(r => {
-        if (!r || !r.emails_sent) {
-          App.contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
-        }
-      });
-    };
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => doSos(pos.coords.latitude, pos.coords.longitude),
-        () => doSos(null, null)
-      );
-    } else {
-      doSos(null, null);
-    }
-  }
 }
 
 /* ════════════════════════════════════════
