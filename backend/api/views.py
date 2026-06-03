@@ -6,7 +6,6 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
-from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -385,10 +384,8 @@ def send_alert(request):
     if not email_list:
         return JsonResponse({'message': 'No emergency contacts with email found.'})
 
-    try:
-        send_mail(
-            subject='🚨 Emergency Alert - Women Safety System',
-            message='''
+    subject = '🚨 Emergency Alert - Women Safety System'
+    body = '''
 Emergency Alert!
 
 I need help immediately.
@@ -396,14 +393,16 @@ I need help immediately.
 Please contact me urgently.
 Location:
 https://maps.google.com
-            ''',
-            from_email=settings.EMAIL_FROM,
-            recipient_list=email_list,
-            fail_silently=False,
-        )
-        return JsonResponse({'message': f'Emergency email sent to {len(email_list)} contact(s) successfully!'})
-    except Exception as e:
-        return JsonResponse({'message': f'Error sending email: {e}'}, status=500)
+    '''
+    sent = 0
+    errors = []
+    for email in email_list:
+        result = send_email_sendgrid(email, subject, body)
+        if result.get('success'):
+            sent += 1
+        else:
+            errors.append(result.get('error'))
+    return JsonResponse({'message': f'Email sent to {sent}/{len(email_list)} contact(s).', 'errors': errors})
 
 
 @api_view(['POST'])
