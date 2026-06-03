@@ -379,46 +379,31 @@ def trigger_alert(request):
 
 @csrf_exempt
 def send_alert(request):
-    if request.method == "GET":
-        return JsonResponse({"message": "Use POST to send SOS alerts with location and contacts."})
-    if request.method == "POST":
-        data = json.loads(request.body)
-        location = data.get("location_link") or data.get("location", "")
-        lat = data.get("latitude") or data.get("lat")
-        lng = data.get("longitude") or data.get("lng")
-        contact_list = data.get("contacts", [])
-        maps_link = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else location
+    contacts = EmergencyContact.objects.all()
+    email_list = [c.email for c in contacts if c.email]
 
-        user_name = data.get("user_name", "A user")
-        subject = f"🚨 SOS EMERGENCY ALERT — {user_name} needs help!"
-        message = f"""
-EMERGENCY ALERT — SafeGuard
+    if not email_list:
+        return JsonResponse({'message': 'No emergency contacts with email found.'})
 
-{user_name} is in danger and needs immediate help.
+    try:
+        send_mail(
+            subject='🚨 Emergency Alert - Women Safety System',
+            message='''
+Emergency Alert!
 
-Location: {maps_link}
-Latitude: {lat or 'N/A'}
-Longitude: {lng or 'N/A'}
-Date & Time: {timezone.now().strftime('%d-%b-%Y %I:%M %p')}
+I need help immediately.
 
-Please contact them immediately.
-        """.strip()
-
-        sent_count = 0
-        emails_to_send = [c['email'] for c in contact_list if c.get('email')]
-        for email in emails_to_send:
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER or 'safeguard@example.com',
-                    [email],
-                    fail_silently=False,
-                )
-                sent_count += 1
-            except Exception as e:
-                print(f"Email send error to {email}: {e}")
-        return JsonResponse({"message": f"Alert sent to {sent_count} email(s)!"})
+Please contact me urgently.
+Location:
+https://maps.google.com
+            ''',
+            from_email=settings.EMAIL_FROM,
+            recipient_list=email_list,
+            fail_silently=False,
+        )
+        return JsonResponse({'message': f'Emergency email sent to {len(email_list)} contact(s) successfully!'})
+    except Exception as e:
+        return JsonResponse({'message': f'Error sending email: {e}'}, status=500)
 
 
 @api_view(['POST'])

@@ -12,15 +12,7 @@
 
     <script>
     function sendSOS() {
-        fetch('/send-alert/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_name: 'Test User',
-                location_link: window.location.href,
-                contacts: [{ email: 'khushikatwa035@gmail.com' }]
-            })
-        })
+        fetch('/send-alert/')
         .then(response => response.json())
         .then(data => alert(data.message))
         .catch(err => alert('Error: ' + err));
