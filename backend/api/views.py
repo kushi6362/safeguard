@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 
 from .models import UserProfile, EmergencyContact, Alert, Complaint, SOSEvent
@@ -420,6 +420,8 @@ Please contact them immediately.
 
 
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([permissions.AllowAny])
 def sos_alert_endpoint(request):
     user = request.user if request.user.is_authenticated else None
     user_name = request.data.get('user_name', user.username if user else 'Unknown User')
