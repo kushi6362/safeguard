@@ -1,3 +1,8 @@
+databases:
+  - name: safeguard-db
+    databaseName: safeguard
+    user: safeguard
+
 services:
   - type: web
     name: safeguard-api
@@ -23,6 +28,10 @@ services:
         value: "https://*.onrender.com"
       - key: DJANGO_SECRET_KEY
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: safeguard-db
+          property: connectionString
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
