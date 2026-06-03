@@ -1,5 +1,6 @@
 import json
 import logging
+import threading
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -190,20 +191,23 @@ def sos_trigger(request):
         results['sms'] = True
         sos.sms_sent = True
 
-    # 2. Send email to all contacts that have an email
-    email_sent_count = 0
-    for contact in contacts:
-        if contact.email:
-            email_result = send_email_sendgrid(
-                contact.email,
-                f'🚨 SOS EMERGENCY ALERT — {request.user.username} needs help!',
-                sms_body,
-            )
-            if email_result.get('success'):
-                email_sent_count += 1
-    if email_sent_count > 0:
-        results['email'] = True
-        sos.email_sent = True
+    # 2. Send email to all contacts (in background for instant response)
+    def send_emails(contacts_list, user_name, body, sos_obj):
+        sent = 0
+        for c in contacts_list:
+            if c.email:
+                r = send_email_sendgrid(
+                    c.email,
+                    f'🚨 SOS EMERGENCY ALERT — {user_name} needs help!',
+                    body,
+                )
+                if r.get('success'):
+                    sent += 1
+        if sent > 0:
+            sos_obj.email_sent = True
+            sos_obj.save(update_fields=['email_sent'])
+    threading.Thread(target=send_emails, args=(list(contacts), request.user.username, sms_body, sos), daemon=True).start()
+    results['email'] = True
 
     # 3. Send push notification via FCM
     fcm_token = request.user.profile.fcm_token
@@ -442,24 +446,17 @@ def sos_alert_endpoint(request):
         f"— SafeGuard Emergency Alert System"
     )
     email_subject = f"🚨 SOS EMERGENCY ALERT — {user_name} needs immediate help!"
-    results = []
-    for contact in data['contacts']:
-        phone = contact.get('phone', '')
-        name = contact.get('name', 'Unknown')
-        email = contact.get('email', '')
-        email_result = None
-        if email:
-            email_result = send_email_sendgrid(email, email_subject, email_body)
-        results.append({
-            'name': name, 'phone': phone, 'email': email,
-            'email_sent': email_result.get('success', False) if email_result else False,
-        })
-    email_count = sum(1 for r in results if r.get('email_sent'))
+    contacts_copy = list(data['contacts'])
+    def send_alert_emails():
+        for c in contacts_copy:
+            if c.get('email'):
+                send_email_sendgrid(c['email'], email_subject, email_body)
+    threading.Thread(target=send_alert_emails, daemon=True).start()
     return Response({
-        'success': email_count > 0,
+        'success': True,
         'total': len(data['contacts']),
-        'emails_sent': email_count,
-        'results': results,
+        'emails_sent': 'pending (background)',
+        'results': [{'name': c.get('name'), 'phone': c.get('phone'), 'email': c.get('email'), 'email_sent': 'pending'} for c in data['contacts']],
     })
 
 
