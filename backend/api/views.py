@@ -379,6 +379,8 @@ def trigger_alert(request):
 
 @csrf_exempt
 def send_alert(request):
+    if request.method == "GET":
+        return JsonResponse({"message": "Use POST to send SOS alerts with location and contacts."})
     if request.method == "POST":
         data = json.loads(request.body)
         location = data.get("location_link") or data.get("location", "")

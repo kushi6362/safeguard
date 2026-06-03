@@ -32,5 +32,6 @@ urlpatterns += [
 
 # Serve frontend index.html for all other paths (SPA-style catch-all)
 urlpatterns += [
+    path('home/', TemplateView.as_view(template_name='home.html'), name='home-page'),
     re_path(r'^.*$', TemplateView.as_view(template_name='index.html'), name='home'),
 ]

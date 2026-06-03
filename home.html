@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS Test</title>
+</head>
+<body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a1a;font-family:sans-serif;">
+    <button onclick="sendSOS()" style="background:#ff2d4a;color:white;border:none;padding:24px 48px;border-radius:16px;font-size:24px;font-weight:700;cursor:pointer;box-shadow:0 0 40px rgba(255,45,74,0.4);">
+        🚨 Emergency SOS
+    </button>
+
+    <script>
+    function sendSOS() {
+        fetch('/send-alert/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_name: 'Test User',
+                location_link: window.location.href,
+                contacts: [{ email: 'khushikatwa035@gmail.com' }]
+            })
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(err => alert('Error: ' + err));
+    }
+    </script>
+</body>
+</html>
