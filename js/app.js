@@ -618,11 +618,15 @@ async function uploadVoiceNote() {
 }
 
 async function autoSendVoiceNoteSOS() {
+  const statusEl = document.getElementById('vn-status');
+
   // Upload voice note
+  statusEl.textContent = '📤 Uploading voice note...';
   const vnResult = await uploadVoiceNote();
   const voiceNoteId = vnResult?.id || null;
 
   // Get GPS
+  statusEl.textContent = '📍 Getting GPS location...';
   let lat = null, lng = null;
   if (navigator.geolocation) {
     try {
@@ -637,22 +641,21 @@ async function autoSendVoiceNoteSOS() {
   // Send SOS
   const contacts = App.contacts;
   if (contacts.length === 0) {
-    document.getElementById('vn-status').textContent = '⚠️ No emergency contacts saved. Add contacts first.';
+    statusEl.textContent = '⚠️ No emergency contacts saved. Add contacts first.';
     return;
   }
 
+  statusEl.textContent = '📨 Sending alert to ' + contacts.length + ' emergency contact(s)...';
   playLoudAlarm();
   sendBrowserNotification('🚨 SOS SENT!', 'Voice note + GPS sent to ' + contacts.length + ' contact(s).', true);
 
   const msg = getSOSMessage();
   const result = await callSosApi(contacts, msg, lat, lng, voiceNoteId);
 
-  // Update status
-  const statusEl = document.getElementById('vn-status');
   if (result && result.success) {
-    statusEl.textContent = `✅ Voice note sent to ${contacts.length} contact(s) with GPS location`;
+    statusEl.textContent = `✅ Voice note + GPS sent to ${contacts.length} contact(s) via email`;
   } else {
-    statusEl.textContent = `✅ Voice note sent via SMS fallback to ${contacts.length} contact(s)`;
+    statusEl.textContent = `✅ Voice note sent — opening SMS app for ${contacts.length} contact(s)`;
     contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
   }
 

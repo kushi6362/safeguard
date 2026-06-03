@@ -411,11 +411,11 @@ https://maps.google.com
 @permission_classes([permissions.AllowAny])
 def sos_alert_endpoint(request):
     user = request.user if request.user.is_authenticated else None
-    user_name = request.data.get('user_name', user.username if user else 'Unknown User')
     serializer = SOSAlertSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     data = serializer.validated_data
+    user_name = data.get('user_name', user.username if user else 'Unknown User')
     location = data.get('location', 'Unknown')
     lat = data.get('lat')
     lng = data.get('lng')
@@ -423,7 +423,7 @@ def sos_alert_endpoint(request):
     maps_link = f'https://www.google.com/maps?q={lat},{lng}' if lat and lng else 'Unknown'
 
     # Optional voice note
-    voice_note_id = request.data.get('voice_note_id')
+    voice_note_id = data.get('voice_note_id')
     voice_note_url = ''
     if voice_note_id:
         try:

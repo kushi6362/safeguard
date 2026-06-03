@@ -80,8 +80,10 @@ class SOSAlertSerializer(serializers.Serializer):
     contacts = serializers.ListField(child=serializers.DictField())
     message = serializers.CharField()
     location = serializers.CharField()
-    lat = serializers.FloatField(required=False)
-    lng = serializers.FloatField(required=False)
+    lat = serializers.FloatField(required=False, allow_null=True)
+    lng = serializers.FloatField(required=False, allow_null=True)
+    voice_note_id = serializers.IntegerField(required=False, allow_null=True)
+    user_name = serializers.CharField(required=False, default='Unknown User')
 
     def validate_contacts(self, value):
         for c in value:
