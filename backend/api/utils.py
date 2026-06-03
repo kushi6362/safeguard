@@ -45,7 +45,7 @@ def send_email_sendgrid(to_email: str, subject: str, body_text: str) -> dict:
             send_mail(subject, body_text, settings.EMAIL_FROM, [to_email], fail_silently=True)
             return {'success': True}
         except BaseException:
-            return {'success': False, 'error': 'SMTP failed'}
+            pass
     api_key = settings.SENDGRID_API_KEY
     if not api_key:
         return {'success': False, 'error': 'Email not configured (set Gmail SMTP or SendGrid)'}
