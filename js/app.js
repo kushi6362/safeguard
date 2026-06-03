@@ -623,7 +623,7 @@ async function autoSendVoiceNoteSOS() {
   // Upload voice note
   statusEl.textContent = '📤 Uploading voice note...';
   const vnResult = await uploadVoiceNote();
-  const voiceNoteId = vnResult?.id || null;
+  const voiceNoteUrl = vnResult?.download_url || null;
 
   // Get GPS
   statusEl.textContent = '📍 Getting GPS location...';
@@ -638,32 +638,46 @@ async function autoSendVoiceNoteSOS() {
     } catch (_) {}
   }
 
-  // Send SOS
   const contacts = App.contacts;
   if (contacts.length === 0) {
     statusEl.textContent = '⚠️ No emergency contacts saved. Add contacts first.';
     return;
   }
 
-  statusEl.textContent = '📨 Sending alert to ' + contacts.length + ' emergency contact(s)...';
   playLoudAlarm();
   sendBrowserNotification('🚨 SOS SENT!', 'Voice note + GPS sent to ' + contacts.length + ' contact(s).', true);
 
-  const msg = getSOSMessage();
-  const result = await callSosApi(contacts, msg, lat, lng, voiceNoteId);
+  // Build SMS body with voice note + GPS links
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+  const mapsLink = (lat && lng) ? `https://maps.google.com/maps?q=${lat},${lng}` : 'https://maps.google.com';
+  const smsBody =
+    `🚨 SOS ALERT - I need help!\n` +
+    `📅 ${dateStr} ${timeStr}\n` +
+    `📍 ${mapsLink}` +
+    (voiceNoteUrl ? `\n🎤 Voice Note: ${voiceNoteUrl}` : '') +
+    `\n\n- SafeGuard App`;
 
-  if (result && result.success) {
-    statusEl.textContent = `✅ Voice note + GPS sent to ${contacts.length} contact(s) via SMS`;
-  } else {
-    statusEl.textContent = `⚠️ SMS failed — opening phone SMS app as fallback`;
-    contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
-  }
+  statusEl.textContent = `📨 Opening SMS app for ${contacts.length} contact(s)...`;
+  contacts.forEach((c, i) => {
+    setTimeout(() => {
+      const phone = c.phone.replace(/[\s\-\(\)]/g, '');
+      openSmsUri(phone, smsBody);
+    }, i * 1500);
+  });
+
+  // Also send via backend as backup
+  const msg = getSOSMessage();
+  callSosApi(contacts, msg, lat, lng, vnResult?.id || null);
+
+  statusEl.textContent = `✅ SMS opened for ${contacts.length} contact(s) — tap Send in your SMS app`;
 
   // Log alert
   App.alerts.unshift({
     type:'red', icon:'mic',
     name:'🎤 Voice Note SOS Sent',
-    desc:'Voice recording + GPS dispatched to ' + contacts.length + ' contact(s)',
+    desc:'Voice recording + GPS sent to ' + contacts.length + ' contact(s) via phone SMS',
     time:'Just now'
   });
   saveState();
@@ -778,7 +792,7 @@ function sosAutoRecordDone() {
   document.getElementById('sos-modal-title').textContent = '📤 Uploading Voice Note';
 
   const doUploadThenSend = async () => {
-    let voiceNoteId = null;
+    let voiceNoteUrl = null;
     if (sosAutoBlob) {
       const formData = new FormData();
       formData.append('audio', sosAutoBlob, 'sos_recording.webm');
@@ -788,43 +802,64 @@ function sosAutoRecordDone() {
           method: 'POST', body: formData
         });
         const data = await res.json();
-        if (data.id) voiceNoteId = data.id;
+        if (data.download_url) voiceNoteUrl = data.download_url;
       } catch (_) {}
     }
 
-    // Send SOS
-    showSosStep('sending');
-    document.getElementById('sos-modal-title').textContent = '📨 Sending Alerts';
-    const msg = getSOSMessage();
     const contacts = App.contacts;
+    if (!contacts.length) {
+      showSosStep('done');
+      document.getElementById('sos-modal-title').textContent = '⚠️ No Contacts';
+      document.getElementById('sos-delivery-detail').textContent = 'Add emergency contacts first.';
+      setTimeout(() => document.getElementById('sos-modal').classList.remove('open'), 3000);
+      return;
+    }
 
-    const result = await callSosApi(contacts, msg, sosGpsLat, sosGpsLng, voiceNoteId);
+    // Build SMS body with voice note + GPS links
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+    const mapsLink = (sosGpsLat && sosGpsLng) ? `https://maps.google.com/maps?q=${sosGpsLat},${sosGpsLng}` : 'https://maps.google.com';
+    const smsBody =
+      `🚨 SOS ALERT - I need help!\n` +
+      `📅 ${dateStr} ${timeStr}\n` +
+      `📍 ${mapsLink}` +
+      (voiceNoteUrl ? `\n🎤 Voice Note: ${voiceNoteUrl}` : '') +
+      `\n\n- SafeGuard App`;
+
+    // Open SMS app for each contact
+    showSosStep('sending');
+    document.getElementById('sos-modal-title').textContent = '📨 Opening SMS App';
+    contacts.forEach((c, i) => {
+      setTimeout(() => {
+        const phone = c.phone.replace(/[\s\-\(\)]/g, '');
+        openSmsUri(phone, smsBody);
+      }, i * 1500);
+    });
+
+    // Also try backend API as backup
+    const msg = getSOSMessage();
+    callSosApi(contacts, msg, sosGpsLat, sosGpsLng, null);
 
     // Show done
     showSosStep('done');
     document.getElementById('sos-modal-title').textContent = '✅ SOS Sent!';
     document.getElementById('sos-delivery-detail').textContent =
-      'Alert sent to ' + contacts.length + ' emergency contact(s). Help is on the way.';
+      'SMS opened for ' + contacts.length + ' contact(s) — tap Send in your SMS app';
 
-    // Add to local history
     App.alerts.unshift({
       type:'red', icon:'alert',
       name:'🚨 SOS SENT NOW',
-      desc:'Live GPS + voice note dispatched to ' + contacts.length + ' contact(s)',
+      desc:'Live GPS + voice note sent to ' + contacts.length + ' contact(s) via phone SMS',
       time:'Just now'
     });
     saveState();
     renderAlerts();
 
-    // Fallback: open SMS app if backend didn't send
-    if (!result || !result.success) {
-      contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
-    }
-
-    // Auto-close modal after 3s
+    // Auto-close modal after 4s
     setTimeout(() => {
       document.getElementById('sos-modal').classList.remove('open');
-    }, 3000);
+    }, 4000);
   };
 
   doUploadThenSend();
