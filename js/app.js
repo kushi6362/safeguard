@@ -653,9 +653,9 @@ async function autoSendVoiceNoteSOS() {
   const result = await callSosApi(contacts, msg, lat, lng, voiceNoteId);
 
   if (result && result.success) {
-    statusEl.textContent = `✅ Voice note + GPS sent to ${contacts.length} contact(s) via email`;
+    statusEl.textContent = `✅ Voice note + GPS sent to ${contacts.length} contact(s) via SMS`;
   } else {
-    statusEl.textContent = `✅ Voice note sent — opening SMS app for ${contacts.length} contact(s)`;
+    statusEl.textContent = `⚠️ SMS failed — opening phone SMS app as fallback`;
     contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
   }
 

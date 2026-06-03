@@ -420,7 +420,7 @@ def sos_alert_endpoint(request):
     lat = data.get('lat')
     lng = data.get('lng')
     now = timezone.now().strftime('%d-%b-%Y %I:%M %p')
-    maps_link = f'https://www.google.com/maps?q={lat},{lng}' if lat and lng else 'Unknown'
+    maps_link = f'https://www.google.com/maps?q={lat},{lng}' if lat and lng else 'https://maps.google.com'
 
     # Optional voice note
     voice_note_id = data.get('voice_note_id')
@@ -432,7 +432,14 @@ def sos_alert_endpoint(request):
         except VoiceNote.DoesNotExist:
             pass
 
-    voice_line = f"\n🎤 Voice Note: {voice_note_url}\n" if voice_note_url else ''
+    voice_line = f"\n🎤 Voice Note: {voice_note_url}" if voice_note_url else ''
+    sms_body = (
+        f"🚨 SOS ALERT — {user_name}\n"
+        f"I need help immediately!\n"
+        f"📅 {now}\n"
+        f"📍 {maps_link}"
+        f"{voice_line}"
+    )
     email_body = (
         f"🚨 EMERGENCY ALERT — {user_name}\n"
         f"{'='*40}\n\n"
@@ -440,26 +447,34 @@ def sos_alert_endpoint(request):
         f"👤 User: {user_name}\n"
         f"📧 Email: {user.email if user else 'N/A'}\n"
         f"📅 Date & Time: {now}\n"
-        f"📍 Latitude: {lat or 'N/A'}\n"
-        f"📍 Longitude: {lng or 'N/A'}\n"
-        f"🗺️ Google Maps: {maps_link}\n"
-        f"{voice_line}"
+        f"📍 Google Maps: {maps_link}\n"
+        f"{voice_line}\n"
         f"Please track and assist immediately.\n"
         f"— SafeGuard Emergency Alert System"
     )
     email_subject = f"🚨 SOS EMERGENCY ALERT — {user_name} needs immediate help!"
     contacts_copy = list(data['contacts'])
-    def send_alert_emails():
+
+    def send_alerts():
         for c in contacts_copy:
-            if c.get('email'):
-                send_email_sendgrid(c['email'], email_subject, email_body)
-    threading.Thread(target=send_alert_emails, daemon=True).start()
+            sent = False
+            # 1. Try SMS via Fast2SMS (phone number)
+            phone = c.get('phone', '').strip()
+            if phone:
+                sms_result = send_sms(phone, sms_body)
+                sent = sms_result.get('success', False)
+            # 2. Fallback to email if SMS failed or no phone
+            email = c.get('email', '').strip()
+            if not sent and email:
+                send_email_sendgrid(email, email_subject, email_body)
+
+    threading.Thread(target=send_alerts, daemon=True).start()
     return Response({
         'success': True,
         'total': len(data['contacts']),
-        'emails_sent': 'pending (background)',
+        'method': 'sms (SMS) with email fallback',
         'voice_note_url': voice_note_url or None,
-        'results': [{'name': c.get('name'), 'phone': c.get('phone'), 'email': c.get('email'), 'email_sent': 'pending'} for c in data['contacts']],
+        'results': [{'name': c.get('name'), 'phone': c.get('phone'), 'email': c.get('email')} for c in data['contacts']],
     })
 
 
