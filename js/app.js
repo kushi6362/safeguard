@@ -536,7 +536,9 @@ function toggleVoiceNoteRecording() {
         document.getElementById('btn-play-vn').textContent = '▶ Play';
         document.getElementById('btn-play-vn').style.display = '';
         document.getElementById('btn-clear-vn').style.display = '';
-        document.getElementById('vn-status').textContent = `✅ Recorded ${vnSeconds}s — saved locally`;
+        document.getElementById('vn-status').textContent = `✅ Recorded ${vnSeconds}s — auto-sending to emergency contacts...`;
+        // Auto-upload and send SOS
+        autoSendVoiceNoteSOS();
       };
 
       vnMediaRecorder.onerror = () => {
@@ -613,6 +615,56 @@ async function uploadVoiceNote() {
     }
   } catch (_) {}
   return null;
+}
+
+async function autoSendVoiceNoteSOS() {
+  // Upload voice note
+  const vnResult = await uploadVoiceNote();
+  const voiceNoteId = vnResult?.id || null;
+
+  // Get GPS
+  let lat = null, lng = null;
+  if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000, enableHighAccuracy: true });
+      });
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+    } catch (_) {}
+  }
+
+  // Send SOS
+  const contacts = App.contacts;
+  if (contacts.length === 0) {
+    document.getElementById('vn-status').textContent = '⚠️ No emergency contacts saved. Add contacts first.';
+    return;
+  }
+
+  playLoudAlarm();
+  sendBrowserNotification('🚨 SOS SENT!', 'Voice note + GPS sent to ' + contacts.length + ' contact(s).', true);
+
+  const msg = getSOSMessage();
+  const result = await callSosApi(contacts, msg, lat, lng, voiceNoteId);
+
+  // Update status
+  const statusEl = document.getElementById('vn-status');
+  if (result && result.success) {
+    statusEl.textContent = `✅ Voice note sent to ${contacts.length} contact(s) with GPS location`;
+  } else {
+    statusEl.textContent = `✅ Voice note sent via SMS fallback to ${contacts.length} contact(s)`;
+    contacts.forEach((c, i) => setTimeout(() => openSmsApp(c.phone, c.name), i * 1800));
+  }
+
+  // Log alert
+  App.alerts.unshift({
+    type:'red', icon:'mic',
+    name:'🎤 Voice Note SOS Sent',
+    desc:'Voice recording + GPS dispatched to ' + contacts.length + ' contact(s)',
+    time:'Just now'
+  });
+  saveState();
+  renderAlerts();
 }
 
 /* ════════════════════════════════════════
