@@ -39,7 +39,7 @@ from django.core.mail import send_mail
 
 def send_email_sendgrid(to_email: str, subject: str, body_text: str) -> dict:
     host_user = settings.EMAIL_HOST_USER
-    host_pass = settings.EMAIL_HOST_PASSWORD
+    host_pass = settings.EMAIL_HOST_PASSWORD.replace(' ', '') if settings.EMAIL_HOST_PASSWORD else ''
     if host_user and host_pass:
         try:
             send_mail(subject, body_text, settings.EMAIL_FROM, [to_email], fail_silently=True)
